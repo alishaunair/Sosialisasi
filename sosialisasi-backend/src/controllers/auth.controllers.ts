@@ -6,9 +6,11 @@ import { generateToken } from "../utils/jwt";
 import { IReqUser } from "../middlewares/auth.middleware";
 
 type TRegister = {
+  profilePicture: string;
   fullName: string;
   status: string;
   email: string;
+  linkedinLink: string;
   password: string;
   jurusan: string;
   universitas: string;
@@ -21,11 +23,13 @@ type TLogin = {
 };
 
 const registerValidateSchema = Yup.object({
+  profilePicture: Yup.string().required(),
   fullName: Yup.string().required(),
   status: Yup.string()
-    .oneOf(["Admin", "Mahasiswa", "Dosen", "Alumni"], "Role tidak valid")
+    .oneOf(["Mahasiswa", "Dosen"], "Role tidak valid")
     .required("Role wajib diisi"),
   email: Yup.string().required(),
+  linkedinLink: Yup.string().required(),
   jurusan: Yup.string().required(),
   universitas: Yup.string().required(),
   password: Yup.string()
@@ -61,18 +65,25 @@ export default {
       email,
       jurusan,
       universitas,
+      linkedinLink,
       status,
       password,
       confirmPassword,
     } = req.body as unknown as TRegister;
 
+    const profilePicturePath = req.file
+      ? `/uploads/${req.file.filename}`
+      : undefined;
+
     try {
       await registerValidateSchema.validate({
+        profilePicture: profilePicturePath,
         fullName,
         email,
         status,
         jurusan,
         universitas,
+        linkedinLink,
         password,
         confirmPassword,
       });
@@ -86,11 +97,13 @@ export default {
       }
 
       const result = await UserModel.create({
+        profilePicture: profilePicturePath,
         fullName,
         email,
         jurusan,
         universitas,
         status,
+        linkedinLink,
         password,
       });
 
@@ -196,19 +209,31 @@ export default {
   async editProfile(req: IReqUser, res: Response) {
     try {
       const user = req.user;
-      const { fullName, status, jurusan, universitas } = req.body as {
+      const {
+        profilePicture,
+        fullName,
+        status,
+        jurusan,
+        universitas,
+        linkedinLink,
+      } = req.body as {
+        profilePicture?: string;
         fullName?: string;
         status?: string;
         jurusan?: string;
         universitas?: string;
+        linkedinLink?: string;
       };
 
       const updatedData: Record<string, any> = {};
 
+      if (profilePicture !== undefined)
+        updatedData.profilePicture = profilePicture;
       if (fullName !== undefined) updatedData.fullName = fullName;
       if (status !== undefined) updatedData.status = status;
       if (jurusan !== undefined) updatedData.jurusan = jurusan;
       if (universitas !== undefined) updatedData.universitas = universitas;
+      if (linkedinLink !== undefined) updatedData.linkedinLink = linkedinLink;
 
       if (Object.keys(updatedData).length === 0) {
         return res.status(400).json({

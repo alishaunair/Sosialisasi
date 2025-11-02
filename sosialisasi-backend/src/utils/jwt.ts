@@ -6,6 +6,7 @@ import { SECRET } from "./env";
 export interface IUserToken
   extends Omit<
     User,
+    | "profilePicture"
     | "password"
     | "activationCode"
     | "isActive"
@@ -13,8 +14,8 @@ export interface IUserToken
     | "fullName"
     | "jurusan"
     | "universitas"
+    | "linkedinLink"
     | "status"
-    | "studentCard"
   > {
   id?: Types.ObjectId;
 }
