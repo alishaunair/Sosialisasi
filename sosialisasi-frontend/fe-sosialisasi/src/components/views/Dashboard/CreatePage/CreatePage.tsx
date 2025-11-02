@@ -28,8 +28,8 @@ const CreatePage = () => {
           <div className="flex flex-row items-center gap-5">
             <img
               src={
-                session?.user?.image ||
-                "https://placehold.co/56x56/000000/FFFFFF?text=AV"
+                `http://localhost:3001${session?.user?.image}` ||
+                "/images/logo.png"
               }
               alt="Avatar"
               className="h-14 w-14 rounded-full bg-black object-cover"

@@ -30,7 +30,10 @@ const CommentSection = ({ postId }: IPropTypes) => {
       {comments.map((comment) => (
         <div key={comment._id} className="flex flex-row gap-4">
           <Image
-            src={comment.id_user?.profilePicture || "/images/logo.png"}
+            src={
+              `http://localhost:3001${comment.id_user?.profilePicture}` ||
+              "/images/logo.png"
+            }
             alt={comment.id_user?.fullName || "User"}
             width={40}
             height={40}

@@ -52,8 +52,8 @@ const HomePage = () => {
               >
                 <div className="flex flex-row items-center gap-4">
                   <Image
-                    src={post.userId.profilePicture || "/images/logo.png"}
-                    alt={post.userId.fullName}
+                    src={`http://localhost:3001${post.userId.profilePicture}`}
+                    alt="Profile Picture"
                     width={48}
                     height={48}
                     className="h-12 w-12 rounded-full object-cover"
@@ -127,7 +127,10 @@ const HomePage = () => {
                   <div className="mt-4 border-t border-gray-100 pt-4">
                     <div className="mb-5 flex flex-row items-start gap-3">
                       <Image
-                        src={session?.user?.image || "/images/logo.png"}
+                        src={
+                          `http://localhost:3001${session?.user?.image}` ||
+                          "/images/logo.png"
+                        }
                         alt="Your avatar"
                         width={40}
                         height={40}
