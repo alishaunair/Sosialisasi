@@ -32,7 +32,7 @@ export default {
             likes: content.likes?.map((like) => like.toString()) || [],
             comments:
               content.comments?.map((comment) => comment.toString()) || [],
-            commentsCount, // ⬅️ Tambahan ini
+            commentsCount,
           };
         })
       );
