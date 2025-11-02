@@ -1,7 +1,7 @@
 export interface IUser {
   _id: string;
   fullName: string;
-  profilePicture?: string;
+  profilePicture: string;
 }
 
 export interface IComment {

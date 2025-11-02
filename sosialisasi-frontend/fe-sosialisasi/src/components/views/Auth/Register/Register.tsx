@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
+import { FaRegEye, FaRegEyeSlash, FaCircle } from "react-icons/fa6";
 import {
   Select,
   SelectItem,
@@ -22,6 +22,7 @@ const Register = () => {
     handleRegister,
     isPendingRegister,
     errors,
+    preview,
     trigger,
   } = useRegister();
 
@@ -179,6 +180,41 @@ const Register = () => {
               {step === 2 && (
                 <>
                   <Controller
+                    name="profilePicture"
+                    control={control}
+                    render={({ field: { onChange, value, ref } }) => (
+                      <div className="flex flex-col items-center gap-4">
+                        <label
+                          htmlFor="profile-picture-upload"
+                          className="cursor-pointer"
+                        >
+                          {preview ? (
+                            <img
+                              src={preview}
+                              alt="Profile preview"
+                              className="h-28 w-28 rounded-full object-cover"
+                            />
+                          ) : (
+                            <FaCircle className="h-28 w-28 text-gray-300" />
+                          )}
+                        </label>
+                        <input
+                          id="profile-picture-upload"
+                          type="file"
+                          accept="image/*"
+                          ref={ref}
+                          onChange={(e) => onChange(e.target.files)}
+                          className="hidden"
+                        />
+                        {errors.profilePicture && (
+                          <p className="text-sm text-red-500">
+                            {errors.profilePicture.message}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  />
+                  <Controller
                     name="jurusan"
                     control={control}
                     render={({ field }) => (
@@ -203,6 +239,20 @@ const Register = () => {
                         placeholder="Enter your university"
                         isInvalid={errors.universitas !== undefined}
                         errorMessage={errors.universitas?.message}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="linkedinLink"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        isRequired
+                        label="LinkedIn Profile URL"
+                        placeholder="https://www.linkedin.com/in/..."
+                        isInvalid={!!errors.linkedinLink}
+                        errorMessage={errors.linkedinLink?.message}
                       />
                     )}
                   />

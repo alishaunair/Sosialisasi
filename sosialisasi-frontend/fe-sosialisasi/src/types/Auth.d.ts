@@ -2,11 +2,13 @@ import { Session, User } from "next-auth";
 import { JWT } from "next-auth/jwt";
 
 interface IRegister {
+  profilePicture: string;
   fullName: string;
   status: string;
   email: string;
   jurusan: string;
   universitas: string;
+  linkedinLink: string;
   password: string;
   confirmPassword: string;
 }
