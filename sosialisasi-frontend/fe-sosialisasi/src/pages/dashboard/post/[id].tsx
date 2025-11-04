@@ -48,7 +48,7 @@ const PostPage = () => {
     return <p className="mt-10 text-center text-gray-500">Post not found</p>;
 
   return (
-    <DashboardLayout showSearch={false} showCreatePostCard={false}>
+    <DashboardLayout showSearch={false}>
       <div className="mx-auto mt-6 flex w-full max-w-2xl flex-col gap-6">
         <article className="flex flex-col rounded-2xl bg-white p-4 shadow-sm sm:p-6">
           {/* Header */}
