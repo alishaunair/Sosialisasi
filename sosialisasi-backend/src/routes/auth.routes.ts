@@ -25,6 +25,5 @@ router.put(
 router.post("/login", authControllers.login);
 router.get("/me", authMiddleware, authControllers.me);
 router.post("/activation", authControllers.activation);
-router.put("/edit-profile", authMiddleware, authControllers.editProfile);
 
 export default router;

@@ -20,10 +20,11 @@ const authServices = {
       },
     }),
   editProfile: (payload: FormData) =>
-    instance.put(`${endpoint.AUTH}/edit-profile`, payload),
-  headers: {
-    "Content-Type": "multipart/form-data",
-  },
+    instance.put(`${endpoint.AUTH}/edit-profile`, payload, {
+      headers: {
+        "Content-Type": "multipart/form-data", // <-- TAMBAHKAN INI
+      },
+    }),
 };
 
 export default authServices;

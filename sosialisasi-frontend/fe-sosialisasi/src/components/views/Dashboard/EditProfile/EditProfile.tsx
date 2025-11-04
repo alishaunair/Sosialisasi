@@ -58,23 +58,19 @@ const EditProfile = () => {
                     htmlFor="profile-picture-upload"
                     className="flex cursor-pointer flex-col items-center"
                   >
-                    {/* --- LOGIKA GAMBAR DIPERBAIKI DI SINI --- */}
                     {preview ? (
-                      // 1. Jika ada PREVIEW (file baru dipilih), tampilkan itu
                       <img
                         src={preview}
                         alt="Profile preview"
                         className="h-28 w-28 rounded-full object-cover"
                       />
                     ) : currentPicture ? (
-                      // 2. Jika tidak ada preview, tampilkan GAMBAR LAMA
                       <img
                         src={`http://localhost:3001${currentPicture}`}
                         alt="Current profile"
                         className="h-28 w-28 rounded-full object-cover"
                       />
                     ) : (
-                      // 3. Jika tidak ada keduanya, tampilkan PLACEHOLDER
                       <FaCircle className="h-28 w-28 text-gray-300" />
                     )}
                     <span className="mt-2 text-sm text-[#5568FE]">

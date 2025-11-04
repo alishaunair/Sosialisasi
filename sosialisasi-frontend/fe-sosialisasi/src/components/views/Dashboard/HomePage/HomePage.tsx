@@ -126,7 +126,7 @@ const HomePage = () => {
                 {showComments && (
                   <article className="flex w-full flex-col rounded-2xl bg-white p-4 shadow-sm sm:p-6">
                     <div className="mb-5 flex flex-row items-center gap-4">
-                      <Image
+                      {/* <Image
                         src={
                           `http://localhost:3001${session?.user?.image}` ||
                           "/images/logo.png"
@@ -135,7 +135,7 @@ const HomePage = () => {
                         width={48}
                         height={48}
                         className="-mt-2 h-12 w-12 rounded-lg bg-black object-cover"
-                      />
+                      /> */}
 
                       <div className="h-auto w-full rounded-lg border-2 border-[#E5E7EB] bg-[#FAFAFF] px-4">
                         <textarea
