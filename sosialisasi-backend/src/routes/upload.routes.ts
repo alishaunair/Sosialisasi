@@ -15,21 +15,6 @@ router.post("/", upload.single("file"), (req, res) => {
   });
 });
 
-router.put(
-  "/profile-picture",
-  authMiddleware,
-  upload.single("profilePicture"),
-  (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ message: "Tidak ada file yang diunggah." });
-    }
-    return res.status(200).json({
-      message: "Foto profil berhasil diperbarui!",
-      data: { filePath: req.file.path },
-    });
-  }
-);
-
 router.get("/content", homeControllers.getAll);
 router.post(
   "/content",

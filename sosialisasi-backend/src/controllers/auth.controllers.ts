@@ -4,6 +4,8 @@ import UserModel from "../models/users.models";
 import { encrypt } from "../utils/encryption";
 import { generateToken } from "../utils/jwt";
 import { IReqUser } from "../middlewares/auth.middleware";
+import fs from "fs";
+import path from "path";
 
 type TRegister = {
   profilePicture: string;
@@ -209,47 +211,47 @@ export default {
   async editProfile(req: IReqUser, res: Response) {
     try {
       const user = req.user;
-      const {
-        profilePicture,
-        fullName,
-        status,
-        jurusan,
-        universitas,
-        linkedinLink,
-      } = req.body as {
-        profilePicture?: string;
-        fullName?: string;
-        status?: string;
-        jurusan?: string;
-        universitas?: string;
-        linkedinLink?: string;
-      };
+      const { fullName, status, jurusan, universitas, linkedinLink } = req.body;
 
       const updatedData: Record<string, any> = {};
 
-      if (profilePicture !== undefined)
-        updatedData.profilePicture = profilePicture;
-      if (fullName !== undefined) updatedData.fullName = fullName;
-      if (status !== undefined) updatedData.status = status;
-      if (jurusan !== undefined) updatedData.jurusan = jurusan;
-      if (universitas !== undefined) updatedData.universitas = universitas;
-      if (linkedinLink !== undefined) updatedData.linkedinLink = linkedinLink;
+      if (req.file) {
+        const currentUser = await UserModel.findById(user?.id);
+        if (
+          currentUser &&
+          currentUser.profilePicture &&
+          currentUser.profilePicture !== "user.jpg"
+        ) {
+          const oldPicturePath = path.join(
+            __dirname,
+            "../../uploads",
+            currentUser.profilePicture
+          );
+          if (fs.existsSync(oldPicturePath)) {
+            fs.unlinkSync(oldPicturePath);
+          }
+        }
+
+        updatedData.profilePicture = `/uploads/${req.file.filename}`;
+      }
+
+      if (fullName) updatedData.fullName = fullName;
+      if (status) updatedData.status = status;
+      if (jurusan) updatedData.jurusan = jurusan;
+      if (universitas) updatedData.universitas = universitas;
+      if (linkedinLink) updatedData.linkedinLink = linkedinLink;
 
       if (Object.keys(updatedData).length === 0) {
         return res.status(400).json({
-          message: "Nothing changed!",
+          message: "No changes provided",
           data: null,
         });
       }
 
       const updatedUser = await UserModel.findOneAndUpdate(
         { _id: user?.id },
-        {
-          $set: updatedData,
-        },
-        {
-          new: true,
-        }
+        { $set: updatedData },
+        { new: true }
       );
 
       if (!updatedUser) {
@@ -258,13 +260,14 @@ export default {
           data: null,
         });
       }
+
       return res.status(200).json({
-        message: "Profile edit successfully",
+        message: "Profile updated successfully",
         data: updatedUser,
       });
     } catch (error) {
       const err = error as unknown as Error;
-      res.status(400).json({
+      return res.status(400).json({
         message: err.message,
         data: null,
       });
