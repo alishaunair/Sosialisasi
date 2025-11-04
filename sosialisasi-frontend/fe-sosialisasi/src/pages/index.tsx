@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Button, ButtonGroup } from "@heroui/button";
 import PageHead from "@/components/commons/PageHead";
+import HomePage from "@/components/views/Dashboard/HomePage";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,10 +15,5 @@ const geistMono = Geist_Mono({
 });
 
 export default function Home() {
-  return (
-    <main className="flex flex-col items-center justify-between p-24">
-      <PageHead />
-      <Button color="primary">Button</Button>
-    </main>
-  );
+  return <HomePage></HomePage>;
 }

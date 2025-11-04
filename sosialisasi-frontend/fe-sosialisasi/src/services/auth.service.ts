@@ -19,8 +19,11 @@ const authServices = {
         Authorization: `Bearer ${token}`,
       },
     }),
-  editProfile: (payload: IEditProfile) =>
+  editProfile: (payload: FormData) =>
     instance.put(`${endpoint.AUTH}/edit-profile`, payload),
+  headers: {
+    "Content-Type": "multipart/form-data",
+  },
 };
 
 export default authServices;

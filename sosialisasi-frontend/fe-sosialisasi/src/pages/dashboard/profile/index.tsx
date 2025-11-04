@@ -1,12 +1,7 @@
-import DashboardLayout from "@/components/layouts/DashboardLayout";
 import Profile from "@/components/views/Dashboard/Profile";
 
 const ProfilePage = () => {
-  return (
-    <DashboardLayout>
-      <Profile></Profile>
-    </DashboardLayout>
-  );
+  return <Profile></Profile>;
 };
 
 export default ProfilePage;
