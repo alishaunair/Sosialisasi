@@ -16,6 +16,12 @@ router.post(
   upload.single("profilePicture"),
   authControllers.register
 );
+router.put(
+  "/edit-profile",
+  authMiddleware,
+  upload.single("profilePicture"),
+  authControllers.editProfile
+);
 router.post("/login", authControllers.login);
 router.get("/me", authMiddleware, authControllers.me);
 router.post("/activation", authControllers.activation);

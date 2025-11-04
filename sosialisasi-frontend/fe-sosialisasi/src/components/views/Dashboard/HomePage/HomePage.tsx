@@ -124,40 +124,53 @@ const HomePage = () => {
                 </div>
 
                 {showComments && (
-                  <div className="mt-4 border-t border-gray-100 pt-4">
-                    <div className="mb-5 flex flex-row items-start gap-3">
+                  <article className="flex w-full flex-col rounded-2xl bg-white p-4 shadow-sm sm:p-6">
+                    <div className="mb-5 flex flex-row items-center gap-4">
                       <Image
                         src={
                           `http://localhost:3001${session?.user?.image}` ||
                           "/images/logo.png"
                         }
-                        alt="Your avatar"
-                        width={40}
-                        height={40}
-                        className="h-10 w-10 rounded-full object-cover"
+                        alt={session?.user?.fullName || "Your avatar"}
+                        width={48}
+                        height={48}
+                        className="-mt-2 h-12 w-12 rounded-lg bg-black object-cover"
                       />
-                      <div className="flex-1">
+
+                      <div className="h-auto w-full rounded-lg border-2 border-[#E5E7EB] bg-[#FAFAFF] px-4">
                         <textarea
-                          placeholder="Write a comment..."
-                          className="w-full resize-none rounded-lg border-gray-200 bg-gray-50 p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          placeholder="Write a Comment"
+                          className="mt-1 mb-1 w-full resize-none overflow-hidden focus:outline-none"
+                          rows={1}
                           value={commentInputs[post._id] || ""}
                           onChange={(e) =>
                             handleInputChange(post._id, e.target.value)
                           }
+                          onInput={(e) => {
+                            e.currentTarget.style.height = "auto";
+                            e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                          }}
                         />
-                        <button
-                          onClick={() => handleSendComment(post._id)}
-                          disabled={
-                            isSendingComment || !commentInputs[post._id]
-                          }
-                          className="mt-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-                        >
-                          {isSendingComment ? "Sending..." : "Send"}
-                        </button>
                       </div>
+
+                      <button
+                        onClick={() => handleSendComment(post._id)}
+                        disabled={isSendingComment || !commentInputs[post._id]}
+                        className="flex h-10 w-auto min-w-[90px] flex-row items-center justify-center gap-2 rounded-lg bg-[#5568FE] text-white hover:bg-[#5568FE]/80 disabled:cursor-not-allowed disabled:bg-gray-400"
+                      >
+                        <i className="fas fa-paper-plane text-sm"></i>
+                        <h2 className="text-sm font-bold">
+                          {isSendingComment ? "Sending..." : "Send"}
+                        </h2>
+                      </button>
                     </div>
+
+                    <h1 className="mb-4 text-[20px] font-semibold text-[#111827]">
+                      Komentar
+                    </h1>
+
                     <CommentSection postId={post._id} />
-                  </div>
+                  </article>
                 )}
               </div>
             );
