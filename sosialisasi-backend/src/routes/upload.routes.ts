@@ -24,5 +24,6 @@ router.post(
 );
 router.delete("/content/:id", homeControllers.delete);
 router.get("/content/:id", homeControllers.getOne);
+router.get("/contentuser", authMiddleware, homeControllers.getById);
 
 export default router;

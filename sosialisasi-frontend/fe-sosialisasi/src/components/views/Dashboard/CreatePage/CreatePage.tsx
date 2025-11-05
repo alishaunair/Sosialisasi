@@ -53,19 +53,35 @@ const CreatePage = () => {
                 <h2 className="text-lg font-medium text-[#202020] sm:text-xl">
                   Choose Category
                 </h2>
-                {/* flex-wrap ditambahkan agar kategori turun ke bawah jika tidak cukup tempat */}
+
                 <div className="flex flex-row flex-wrap items-center gap-3">
                   {CATEGORIES.map((cat) => (
                     <div
                       key={cat}
                       onClick={() => onChange(cat)}
                       className={cn(
-                        "flex cursor-pointer flex-row items-center gap-2 rounded-full px-5 py-2 sm:px-6 sm:py-3",
-                        value === cat
+                        "flex cursor-pointer flex-row items-center gap-2 rounded-full px-5 py-2 transition-all duration-200 sm:px-6 sm:py-3",
+                        value === "All" && cat === "All"
                           ? "bg-[#5568FE] text-white"
-                          : "bg-[#E5E7EB] text-[#787878]",
+                          : value === "Competition" && cat === "Competition"
+                            ? "bg-[#FFB27C] text-[#202020]"
+                            : value === "Project" && cat === "Project"
+                              ? "bg-[#16A34A] text-white"
+                              : "bg-[#E5E7EB] text-[#787878]",
                       )}
                     >
+                      <i
+                        className={cn(
+                          "fa-solid",
+                          cat === "All"
+                            ? "fa-globe"
+                            : cat === "Competition"
+                              ? "fa-trophy"
+                              : cat === "Project"
+                                ? "fa-code"
+                                : "fa-circle",
+                        )}
+                      ></i>
                       <p className="text-sm font-medium sm:text-base">{cat}</p>
                     </div>
                   ))}

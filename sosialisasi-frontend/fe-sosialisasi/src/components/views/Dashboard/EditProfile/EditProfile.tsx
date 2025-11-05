@@ -32,19 +32,8 @@ const EditProfile = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex w-full flex-col justify-center gap-6 bg-gray-50 p-6 lg:flex-row">
-        <div className="mb-6 w-full max-w-3xl self-start rounded-2xl border border-gray-200 bg-white px-6 py-8 lg:w-1/2">
-          {/* <div className="flex flex-col items-center justify-between gap-4">
-            <div className="relative h-28 w-28 rounded-full bg-black object-cover">
-              <div className="absolute right-0 bottom-0 cursor-pointer rounded-full bg-[#5568FE] p-2">
-                <i className="fa-solid fa-camera text-white"></i>
-              </div>
-            </div>
-            <div className="cursor-pointer rounded-xl border border-[#5568FE] px-8 py-3 font-medium text-[#5568FE] hover:bg-[#5568FE] hover:text-white">
-              <h3>Change Foto</h3>
-            </div>
-          </div> */}
-
+      <div className="flex w-full flex-col justify-center gap-6 bg-gray-50 py-6 lg:flex-row">
+        <div className="mb-6 w-full max-w-3xl self-start overflow-y-auto rounded-2xl border border-gray-200 bg-white px-6 py-8 lg:w-1/2">
           <form
             onSubmit={handleSubmit(handleEditProfile)}
             className="flex flex-col gap-8 px-8 py-12"
@@ -73,7 +62,7 @@ const EditProfile = () => {
                     ) : (
                       <FaCircle className="h-28 w-28 text-gray-300" />
                     )}
-                    <span className="mt-2 text-sm text-[#5568FE]">
+                    <span className="mt-4 rounded-lg bg-[#5568FE] px-4 py-2 text-sm font-semibold text-white hover:bg-[#5568FE]/90">
                       Ubah Foto
                     </span>
                   </label>

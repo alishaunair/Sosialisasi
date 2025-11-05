@@ -24,7 +24,6 @@ async function toggleComment(req: IReqUser, res: Response) {
       $push: { comments: newComment._id },
     });
 
-    // 3. Kirim kembali komentar yang baru dibuat dengan data user-nya
     const populatedComment = await newComment.populate(
       "id_user",
       "fullName profilePicture"
@@ -44,7 +43,7 @@ async function getCommentsByContentId(req: IReqUser, res: Response) {
     const contentId = req.params.id;
     const comments = await CommentModel.find({ id_content: contentId })
       .populate("id_user", "fullName profilePicture")
-      .sort({ created_at_comment: "asc" });
+      .sort({ created_at_comment: "desc" });
 
     res.status(200).json({
       message: "Berhasil mengambil komentar",
