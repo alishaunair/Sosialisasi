@@ -8,6 +8,11 @@ const contentServices = {
       .get<{ data: IPost[] }>(endpoint.CONTENT)
       .then((res) => res.data.data),
 
+  getPostsByUserId: () =>
+    instance
+      .get<{ data: IPost[] }>(endpoint.CONTENT_ID)
+      .then((res) => res.data.data),
+
   createContent: (formData: FormData) =>
     instance.post(endpoint.CONTENT, formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -31,6 +36,9 @@ const contentServices = {
     instance.post<{ data: IComment }>(`${endpoint.COMMENT}/${postId}`, {
       text_comment,
     }),
+
+  deleteContent: (postId: string) =>
+    instance.delete(`${endpoint.CONTENT}/${postId}`),
 };
 
 export default contentServices;
