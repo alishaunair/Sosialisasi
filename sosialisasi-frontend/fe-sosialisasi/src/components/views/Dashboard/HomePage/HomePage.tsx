@@ -1,7 +1,7 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout";
-import useHomePage from "./useHomePage";
+import useHomePage from "../../../hooks/useHomePage";
 import Image from "next/image";
-import CommentSection from "./CommentSection";
+import CommentSection from "./CommentSectionPage";
 
 const HomePage = () => {
   const {

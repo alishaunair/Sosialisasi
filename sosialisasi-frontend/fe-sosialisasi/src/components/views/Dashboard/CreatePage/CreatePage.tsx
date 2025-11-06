@@ -1,9 +1,11 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout";
-import useCreatePage from "./useCreatePage";
+import useCreatePage from "../../../hooks/useCreatePage";
 import { Controller } from "react-hook-form";
 import { cn } from "@/utils/cn";
 import { Spinner } from "@heroui/react";
 import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
+import authServices from "@/services/auth.service";
 
 const CreatePage = () => {
   const { data: session } = useSession();
@@ -16,8 +18,13 @@ const CreatePage = () => {
     handleCreatePost,
   } = useCreatePage();
 
-  const CATEGORIES = ["All", "Competition", "Project"] as const;
+  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: authServices.getProfile,
+  });
+  const profile = profileData?.data?.data;
 
+  const CATEGORIES = ["All", "Competition", "Project"] as const;
   return (
     <DashboardLayout>
       <form
@@ -28,8 +35,9 @@ const CreatePage = () => {
           <div className="flex flex-row items-center gap-5">
             <img
               src={
-                `http://localhost:3001${session?.user?.image}` ||
-                "/images/logo.png"
+                profile?.profilePicture
+                  ? `http://localhost:3001${profile.profilePicture}`
+                  : "/images/logo.png"
               }
               alt="Avatar"
               className="h-14 w-14 rounded-full bg-black object-cover"
@@ -37,10 +45,12 @@ const CreatePage = () => {
 
             <div>
               <h3 className="text-lg font-medium text-[#202020] sm:text-xl">
-                {session?.user?.name || "Loading..."}
+                {isLoadingProfile
+                  ? "Loading..."
+                  : profile?.fullName || "User Name"}
               </h3>
               <h4 className="text-sm text-[#787878] sm:text-base">
-                {session?.user?.email || "Loading..."}
+                {profile?.email || "Loading..."}
               </h4>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import Profile from "@/components/views/Dashboard/Profile";
+import Profile from "@/components/views/Dashboard/ProfilePage";
 
 const ProfilePage = () => {
   return <Profile></Profile>;

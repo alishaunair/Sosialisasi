@@ -14,8 +14,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  // console.log("\n--- [API ROUTE] Request Diterima ---");
-
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method Not Allowed" });
   }
@@ -31,8 +29,6 @@ export default async function handler(
       .json({ message: "Unauthorized: Token tidak valid atau tidak lengkap." });
   }
 
-  // console.log("[API ROUTE] Cekpoint 1: Token valid.");
-
   try {
     const form = formidable({});
     console.log("[API ROUTE] Cekpoint 2: Formidable siap mem-parse.");
@@ -45,14 +41,12 @@ export default async function handler(
 
     const backendFormData = new FormData();
 
-    // Tambahkan field teks
     for (const key in fields) {
       if (fields[key]) {
         backendFormData.append(key, fields[key][0]);
       }
     }
 
-    // Tambahkan file jika ada
     if (files.file && files.file[0]) {
       const file = files.file[0];
       console.log(
@@ -69,10 +63,6 @@ export default async function handler(
       );
     }
 
-    // console.log(
-    //   "[API ROUTE] Cekpoint 5: FormData untuk backend siap, akan melakukan fetch.",
-    // );
-
     const backendResponse = await fetch(
       "http://localhost:3001/api/upload/content",
       {
@@ -84,11 +74,6 @@ export default async function handler(
       },
     );
 
-    console.log(
-      "[API ROUTE] Cekpoint 6: Fetch ke backend selesai. Status:",
-      backendResponse.status,
-    );
-
     const data = await backendResponse.json();
 
     if (!backendResponse.ok) {
@@ -97,7 +82,6 @@ export default async function handler(
 
     return res.status(201).json(data);
   } catch (error: any) {
-    console.error("!!! [API ROUTE] CRASH TERJADI DI SINI:", error);
     return res.status(500).json({ message: error.message });
   }
 }

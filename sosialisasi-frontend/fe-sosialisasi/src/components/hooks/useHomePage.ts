@@ -29,27 +29,56 @@ const useHomePage = () => {
       const userId = session?.user?.id;
       if (!userId) return;
       await queryClient.cancelQueries({ queryKey: ["posts"] });
+      await queryClient.cancelQueries({ queryKey: ["user-posts"] });
+      await queryClient.cancelQueries({ queryKey: ["post", postId] });
+
       const previousPosts = queryClient.getQueryData<IPost[]>(["posts"]);
+      const previousUserPosts = queryClient.getQueryData<IPost[]>([
+        "user-posts",
+      ]);
+      const previousPost = queryClient.getQueryData<IPost>(["post", postId]);
+
+      const optimisticUpdate = (post: IPost) => {
+        if (post._id !== postId) return post;
+        return {
+          ...post,
+          likes: post.likes.includes(userId)
+            ? post.likes.filter((id) => id !== userId)
+            : [...post.likes, userId],
+        };
+      };
+
       queryClient.setQueryData<IPost[]>(["posts"], (oldData = []) =>
-        oldData.map((post) =>
-          post._id === postId
-            ? {
-                ...post,
-                likes: post.likes.includes(userId)
-                  ? post.likes.filter((id) => id !== userId)
-                  : [...post.likes, userId],
-              }
-            : post,
-        ),
+        oldData.map(optimisticUpdate),
       );
-      return { previousPosts };
+
+      queryClient.setQueryData<IPost[]>(["user-posts"], (oldData = []) =>
+        oldData.map(optimisticUpdate),
+      );
+
+      if (previousPost) {
+        queryClient.setQueryData<IPost>(
+          ["post", postId],
+          optimisticUpdate(previousPost),
+        );
+      }
+
+      return { previousPosts, previousUserPosts, previousPost };
     },
-    onError: (_, __, context) => {
+
+    onError: (_, postId, context) => {
       if (context?.previousPosts)
         queryClient.setQueryData(["posts"], context.previousPosts);
+      if (context?.previousUserPosts)
+        queryClient.setQueryData(["user-posts"], context.previousUserPosts);
+      if (context?.previousPost)
+        queryClient.setQueryData(["post", postId], context.previousPost);
     },
-    onSettled: () => {
+
+    onSettled: (data, error, postId) => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["user-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["post", postId] });
     },
   });
 
@@ -60,8 +89,12 @@ const useHomePage = () => {
         queryKey: ["comments", variables.postId],
       });
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["user-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["post", variables.postId] });
+
       setCommentInputs((prev) => ({ ...prev, [variables.postId]: "" }));
     },
+
     onError: () => {
       setToaster({ type: "error", message: "Gagal mengirim komentar." });
     },
