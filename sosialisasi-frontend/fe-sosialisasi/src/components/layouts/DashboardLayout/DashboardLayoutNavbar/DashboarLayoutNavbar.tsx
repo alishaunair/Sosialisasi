@@ -1,4 +1,9 @@
+// ...existing code...
 import Image from "next/image";
+import { useSession, signOut } from "next-auth/react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useContext } from "react";
+import { ToasterContext } from "@/contexts/ToasterContext";
 
 interface IPropTypes {
   showSearch?: boolean;
@@ -9,6 +14,22 @@ const DashboardLayoutNavbar = ({
   showSearch = false,
   toggleSidebar,
 }: IPropTypes) => {
+  const { data: session } = useSession();
+  const queryClient = useQueryClient();
+  const { setToaster } = useContext(ToasterContext);
+
+  const handleLogout = async () => {
+    try {
+      await queryClient.cancelQueries();
+      queryClient.removeQueries();
+
+      await signOut({ callbackUrl: "/auth/login" });
+    } catch (err) {
+      console.error("Logout error: ", err);
+      setToaster?.({ type: "error", message: "Gagal Logout" });
+    }
+  };
+
   return (
     <nav className="sticky top-0 z-50 flex w-full flex-row items-center justify-between bg-white p-4 shadow-md sm:p-5">
       <div className="flex flex-row items-center gap-2 sm:gap-3">
@@ -35,7 +56,6 @@ const DashboardLayoutNavbar = ({
       )}
 
       <div className="flex flex-row items-center gap-3 sm:gap-5 lg:gap-7">
-        {/* Hamburger Menu - Only visible on mobile */}
         <button
           onClick={toggleSidebar}
           className="cursor-pointer rounded-xl bg-[#FAFAFF] p-2.5 transition-colors hover:bg-gray-100 sm:p-3 md:hidden"
@@ -49,9 +69,12 @@ const DashboardLayoutNavbar = ({
         </div>
 
         {/* Logout */}
-        <div className="cursor-pointer rounded-xl bg-[#FAFAFF] p-2.5 transition-colors hover:bg-gray-100 sm:p-3 lg:p-4">
+        <button
+          onClick={handleLogout}
+          className="cursor-pointer rounded-xl bg-[#FAFAFF] p-2.5 transition-colors hover:bg-gray-100 sm:p-3 lg:p-4"
+        >
           <i className="fas fa-sign-out-alt text-base text-[#787878] sm:text-lg"></i>
-        </div>
+        </button>
       </div>
     </nav>
   );

@@ -2,23 +2,21 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import Image from "next/image";
-import { IPost, IComment } from "@/types/Home";
-import CommentSection from "@/components/views/Dashboard/HomePage/CommentSection";
-import useHomePage from "@/components/views/Dashboard/HomePage/useHomePage";
+import { IPost } from "@/types/Home";
+import CommentSection from "@/components/views/Dashboard/HomePage/CommentSectionPage";
+import useHomePage from "@/components/hooks/useHomePage";
+import { useQuery } from "@tanstack/react-query";
+import contentServices from "@/services/content.service";
 
 const PostPage = () => {
   const router = useRouter();
   const { id } = router.query;
 
-  const [post, setPost] = useState<IPost | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const {
     currentUserId,
     visibleComments,
     commentInputs,
     isSendingComment,
-    session,
     handleToggleLike,
     handleToggleComments,
     handleInputChange,
@@ -26,38 +24,33 @@ const PostPage = () => {
     handleShare,
   } = useHomePage();
 
-  useEffect(() => {
-    if (!id) return;
+  const {
+    data: post,
+    isLoading: loading,
+    error,
+  } = useQuery<IPost, Error>({
+    queryKey: ["post", id],
+    queryFn: async () => {
+      const postId = Array.isArray(id) ? id[0] : id;
+      if (!postId) throw new Error("Post ID is required");
 
-    const fetchPost = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+      const res = await fetch(
+        `http://localhost:3001/api/upload/content/${postId}`,
+      );
+      if (!res.ok)
+        throw new Error(`Failed to fetch post. Status: ${res.status}`);
 
-        const res = await fetch(
-          `http://localhost:3001/api/upload/content/${id}`,
-        );
-        if (!res.ok)
-          throw new Error(`Failed to fetch post. Status: ${res.status}`);
-
-        const data = await res.json();
-        if (!data.data) throw new Error("Post not found");
-
-        setPost(data.data as IPost);
-      } catch (err: any) {
-        console.error(err);
-        setError(err.message || "Something went wrong");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPost();
-  }, [id]);
+      const data = await res.json();
+      if (!data.data) throw new Error("Post not found");
+      return data.data as IPost;
+    },
+    enabled: !!id,
+  });
 
   if (loading)
     return <p className="mt-10 text-center text-gray-500">Loading post...</p>;
-  if (error) return <p className="mt-10 text-center text-red-500">{error}</p>;
+  if (error)
+    return <p className="mt-10 text-center text-red-500">{error.message}</p>;
   if (!post)
     return <p className="mt-10 text-center text-gray-500">Post not found</p>;
 

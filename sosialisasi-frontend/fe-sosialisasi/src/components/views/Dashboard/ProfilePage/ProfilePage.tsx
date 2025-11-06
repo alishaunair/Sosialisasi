@@ -1,10 +1,10 @@
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import useProfile from "./useProfile";
+import useProfile from "../../../hooks/useProfile";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
-import useHomePage from "../HomePage/useHomePage";
-import CommentSection from "../HomePage/CommentSection";
+import useHomePage from "../../../hooks/useHomePage";
+import CommentSection from "../HomePage/CommentSectionPage";
 
 const Profile = () => {
   const router = useRouter();

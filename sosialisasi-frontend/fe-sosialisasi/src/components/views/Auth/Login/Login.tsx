@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Form, Input, Checkbox, Button, Spinner } from "@heroui/react";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 import Link from "next/link";
-import useLogin from "./useLogin";
+import useLogin from "../../../hooks/useLogin";
 import { Controller } from "react-hook-form";
 
 const Login = () => {

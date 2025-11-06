@@ -1,5 +1,5 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout";
-import useEditProfile from "./useEditProfile";
+import useEditProfile from "../../../hooks/useEditProfile";
 import { Controller } from "react-hook-form";
 import { Spinner } from "@heroui/react";
 import { FaCircle } from "react-icons/fa6";

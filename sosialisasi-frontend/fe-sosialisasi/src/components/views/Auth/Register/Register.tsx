@@ -8,7 +8,7 @@ import {
   Button,
   Spinner,
 } from "@heroui/react";
-import useRegister, { RegisterFormData } from "./useRegister";
+import useRegister, { RegisterFormData } from "../../../hooks/useRegister";
 import Link from "next/link";
 import { Controller, Path } from "react-hook-form";
 
