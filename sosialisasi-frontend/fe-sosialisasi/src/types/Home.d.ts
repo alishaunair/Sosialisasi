@@ -34,3 +34,9 @@ export interface ISearchResult {
   users: IUserSearchResult[];
   contents: IPost[];
 }
+
+export interface IConnection {
+  user: IUser;
+  status: "pending" | "accepted";
+  created_at_connection: string;
+}

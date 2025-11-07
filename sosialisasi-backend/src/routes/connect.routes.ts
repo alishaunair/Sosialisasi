@@ -12,5 +12,10 @@ router.patch(
   connectionControlllers.rejectConnection
 );
 router.get("/", authMiddleware, connectionControlllers.getConnections);
+router.get(
+  "/pending",
+  authMiddleware,
+  connectionControlllers.getPendingConnections
+);
 
 export default router;

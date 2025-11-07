@@ -4,14 +4,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useContext, useState } from "react";
 import { ToasterContext } from "@/contexts/ToasterContext";
 import { useSearch } from "@/contexts/SearchContext";
+import { useRouter } from "next/router";
 
 interface IPropTypes {
   showSearch?: boolean;
+  showNotif?: boolean;
   toggleSidebar?: () => void;
 }
 
 const DashboardLayoutNavbar = ({
   showSearch = false,
+  showNotif = false,
   toggleSidebar,
 }: IPropTypes) => {
   const { data: session } = useSession();
@@ -25,6 +28,8 @@ const DashboardLayoutNavbar = ({
       setSearchTerm(localSearch.trim());
     }
   };
+
+  const router = useRouter();
 
   const handleLogout = async () => {
     try {
@@ -74,12 +79,15 @@ const DashboardLayoutNavbar = ({
           <i className="fas fa-bars text-base text-[#787878] sm:text-lg"></i>
         </button>
 
-        {/* Notification */}
-        <div className="cursor-pointer rounded-xl bg-[#FAFAFF] p-2.5 transition-colors hover:bg-gray-100 sm:p-3 lg:p-4">
-          <i className="fas fa-bell text-base text-[#787878] sm:text-lg"></i>
+        <div
+          className={`cursor-pointer rounded-xl p-2.5 transition-colors sm:p-3 lg:p-4 ${showNotif ? "bg-[#5568FE] hover:bg-[#4657d8]" : "bg-[#FAFAFF] hover:bg-gray-100"}`}
+          onClick={() => router.push("/dashboard/notifikasi")}
+        >
+          <i
+            className={`fas fa-bell text-base sm:text-lg ${showNotif ? "text-white" : "text-[#787878]"}`}
+          ></i>
         </div>
 
-        {/* Logout */}
         <button
           onClick={handleLogout}
           className="cursor-pointer rounded-xl bg-[#FAFAFF] p-2.5 transition-colors hover:bg-gray-100 sm:p-3 lg:p-4"

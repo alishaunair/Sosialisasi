@@ -84,6 +84,9 @@ const UserSchema = new Schema<User>(
           default: "pending",
         },
       },
+      {
+        timestamps: true,
+      },
     ],
 
     activationCode: {
