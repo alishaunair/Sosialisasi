@@ -4,6 +4,12 @@ import connectionControlllers from "../controllers/connection.controlllers";
 
 const router = express.Router();
 
-router.post("/", authMiddleware, connectionControlllers.connect);
+router.post("/:id", authMiddleware, connectionControlllers.connect);
+router.patch("/:id", authMiddleware, connectionControlllers.acceptConnection);
+router.patch(
+  "/rejected/:id",
+  authMiddleware,
+  connectionControlllers.rejectConnection
+);
 
 export default router;

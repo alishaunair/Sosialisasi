@@ -49,6 +49,7 @@ export default {
 
         return res.status(200).json({
           message: "Permintaan koneksi berhasil dikirim.",
+          data: targetUser,
         });
       }
     } catch (error) {
@@ -86,8 +87,28 @@ export default {
         });
       }
 
+      const requesterUser = await UserModel.findById(requesterId);
+      if (requesterUser) {
+        if (!Array.isArray(requesterUser.connections)) {
+          requesterUser.connections = [];
+        }
+
+        const alreadyConnected = requesterUser.connections.find(
+          (conn: any) => conn.user.toString() === currentUserId.toString()
+        );
+
+        if (!alreadyConnected) {
+          requesterUser.connections.push({
+            user: new mongoose.Types.ObjectId(currentUserId),
+            status: "accepted",
+          } as any);
+          await requesterUser.save();
+        }
+      }
+
       return res.status(200).json({
-        message: "Permintaan koneksi diterima.",
+        message: "Permintaan koneksi diterima dan hubungan terjalin.",
+        data: requesterUser,
       });
     } catch (error) {
       console.error(error);
@@ -183,26 +204,25 @@ export default {
         return res.status(401).json({ message: "User tidak terautentikasi." });
       }
 
-      const updatedUser = await UserModel.findOneAndUpdate(
+      const updatedUser = await UserModel.updateOne(
         {
           _id: currentUserId,
           "connections.user": requesterId,
           "connections.status": "pending",
         },
         {
-          $set: { "connections.$.status": "rejected" },
-        },
-        { new: true }
+          $pull: { connections: { user: requesterId } },
+        }
       );
 
-      if (!updatedUser) {
+      if (updatedUser.modifiedCount === 0) {
         return res.status(404).json({
           message: "Permintaan koneksi tidak ditemukan atau sudah diproses.",
         });
       }
 
       return res.status(200).json({
-        message: "Permintaan koneksi berhasil ditolak.",
+        message: "Permintaan koneksi berhasil ditolak dan dihapus.",
       });
     } catch (error) {
       console.error(error);
