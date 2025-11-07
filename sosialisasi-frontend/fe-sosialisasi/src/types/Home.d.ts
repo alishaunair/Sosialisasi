@@ -21,3 +21,16 @@ export interface IPost {
   likes: string[];
   comments: (string | IComment)[];
 }
+
+export interface IUserSearchResult {
+  _id: string;
+  fullName: string;
+  profilePicture: string;
+  status: string;
+  universitas: string;
+}
+
+export interface ISearchResult {
+  users: IUserSearchResult[];
+  contents: IPost[];
+}

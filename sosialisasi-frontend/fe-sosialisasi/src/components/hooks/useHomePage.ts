@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import contentServices from "@/services/content.service";
-import { IPost } from "@/types/Home";
+import { IPost, ISearchResult } from "@/types/Home";
 import { ToasterContext } from "@/contexts/ToasterContext";
+import { useSearch } from "@/contexts/SearchContext";
 import { useContext } from "react";
 
 const useHomePage = () => {
@@ -16,12 +17,27 @@ const useHomePage = () => {
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>(
     {},
   );
+  const { searchTerm } = useSearch();
+  const isSearching = !!searchTerm;
 
-  const { data: posts = [], isLoading: isLoadingPosts } = useQuery<IPost[]>({
+  const { data: allPostsData = [], isLoading: isLoadingAllPosts } = useQuery<
+    IPost[]
+  >({
     queryKey: ["posts"],
     queryFn: contentServices.getAllPosts,
-    enabled: !!session,
+    enabled: !!session && !isSearching,
   });
+
+  const { data: searchResults, isLoading: isLoadingSearch } =
+    useQuery<ISearchResult>({
+      queryKey: ["search", searchTerm],
+      queryFn: () => contentServices.searchAll(searchTerm),
+      enabled: !!session && isSearching,
+    });
+
+  const posts = isSearching ? searchResults?.contents || [] : allPostsData;
+  const users = isSearching ? searchResults?.users || [] : [];
+  const isLoadingPosts = isSearching ? isLoadingSearch : isLoadingAllPosts;
 
   const { mutate: handleToggleLike } = useMutation({
     mutationFn: contentServices.toggleLike,
@@ -129,6 +145,8 @@ const useHomePage = () => {
 
   return {
     posts,
+    users,
+    isSearching,
     isLoadingPosts,
     currentUserId: session?.user?.id,
     session,

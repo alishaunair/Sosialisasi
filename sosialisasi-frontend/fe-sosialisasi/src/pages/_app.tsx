@@ -7,6 +7,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Head from "next/head";
 import { ToasterProvider } from "@/contexts/ToasterContext";
+import { SearchProvider } from "@/contexts/SearchContext";
 import { SessionProvider } from "next-auth/react";
 
 const jakartaPlusSans = Plus_Jakarta_Sans({
@@ -32,23 +33,25 @@ export default function App({
   return (
     <SessionProvider session={session}>
       <QueryClientProvider client={queryClient}>
-        <HeroUIProvider>
-          <Head>
-            <link
-              rel="stylesheet"
-              href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-              integrity="sha512-p+cGpCzR6v4DLYDW7sSY+5KqMw9vM7e5wKZkSaLJgRjC5B5V2lb3+1Q6BB7pN7YB4dzQfkn07hHj6lZgHkeFeg=="
-              crossOrigin="anonymous"
-              referrerPolicy="no-referrer"
-            />
-          </Head>
+        <SearchProvider>
+          <HeroUIProvider>
+            <Head>
+              <link
+                rel="stylesheet"
+                href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+                integrity="sha512-p+cGpCzR6v4DLYDW7sSY+5KqMw9vM7e5wKZkSaLJgRjC5B5V2lb3+1Q6BB7pN7YB4dzQfkn07hHj6lZgHkeFeg=="
+                crossOrigin="anonymous"
+                referrerPolicy="no-referrer"
+              />
+            </Head>
 
-          <main className={cn(jakartaPlusSans.className)}>
-            <ToasterProvider>
-              <Component {...pageProps} />
-            </ToasterProvider>
-          </main>
-        </HeroUIProvider>
+            <main className={cn(jakartaPlusSans.className)}>
+              <ToasterProvider>
+                <Component {...pageProps} />
+              </ToasterProvider>
+            </main>
+          </HeroUIProvider>
+        </SearchProvider>
       </QueryClientProvider>
     </SessionProvider>
   );

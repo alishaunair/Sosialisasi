@@ -1,9 +1,0 @@
-{
-  "devDependencies": {
-    "@types/formidable": "^3.4.6",
-    "@types/uuid": "^10.0.0"
-  },
-  "dependencies": {
-    "formidable": "^3.5.4"
-  }
-}

@@ -6,6 +6,8 @@ import CommentSection from "./CommentSectionPage";
 const HomePage = () => {
   const {
     posts,
+    users,
+    isSearching,
     isLoadingPosts,
     currentUserId,
     visibleComments,
@@ -21,16 +23,20 @@ const HomePage = () => {
 
   if (isLoadingPosts) {
     return (
-      <DashboardLayout>
-        <p className="pt-8 text-center text-gray-500">Menunggu posts...</p>
+      <DashboardLayout showSearch>
+        <p className="pt-8 text-center text-gray-500">
+          {isSearching ? "Mencari..." : "Menunggu posts..."}
+        </p>
       </DashboardLayout>
     );
   }
 
-  if (posts.length === 0) {
+  if (posts.length === 0 && (!isSearching || (users && users.length === 0))) {
     return (
-      <DashboardLayout>
-        <p className="pt-8 text-center text-gray-500">Belum Ada Postingan.</p>
+      <DashboardLayout showSearch>
+        <p className="pt-8 text-center text-gray-500">
+          {isSearching ? "Tidak ada hasil ditemukan." : "Belum Ada Postingan."}
+        </p>
       </DashboardLayout>
     );
   }
@@ -39,6 +45,40 @@ const HomePage = () => {
     <DashboardLayout showSearch>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-2 sm:gap-6 sm:px-4 lg:flex-row lg:gap-8">
         <div className="flex w-full flex-col gap-4 sm:gap-6 lg:max-w-5xl">
+          {isSearching && users && users.length > 0 && (
+            <div className="flex w-full flex-col rounded-lg bg-white p-3 shadow-sm sm:rounded-2xl sm:p-4 lg:p-6">
+              <h2 className="mb-4 text-xl font-bold text-gray-900">People</h2>
+              <div className="flex flex-col gap-4">
+                {users.map((user: any) => (
+                  <div
+                    key={user._id}
+                    className="flex flex-row items-center gap-3 sm:gap-4"
+                  >
+                    <Image
+                      src={`http://localhost:3001${user.profilePicture}`}
+                      alt={user.fullName}
+                      width={48}
+                      height={48}
+                      className="h-10 w-10 flex-shrink-0 rounded-full object-cover sm:h-12 sm:w-12"
+                    />
+                    <div className="flex min-w-0 flex-col">
+                      <h3 className="truncate text-base font-semibold text-gray-900 sm:text-lg">
+                        {user.fullName}
+                      </h3>
+                      <span className="truncate text-xs text-gray-500 sm:text-sm">
+                        {user.status} di {user.universitas}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {isSearching && posts.length > 0 && (
+            <h2 className="mt-2 text-xl font-bold text-gray-900">Posts</h2>
+          )}
+
           {posts.map((post) => {
             const hasLiked = currentUserId
               ? post.likes.includes(currentUserId)

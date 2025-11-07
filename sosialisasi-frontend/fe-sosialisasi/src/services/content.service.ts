@@ -1,6 +1,6 @@
 import instance from "@/libs/axios/instance";
 import endpoint from "./endpoint.constant";
-import { IPost, IComment } from "@/types/Home";
+import { IPost, IComment, ISearchResult } from "@/types/Home";
 
 const contentServices = {
   getAllPosts: () =>
@@ -39,6 +39,11 @@ const contentServices = {
 
   deleteContent: (postId: string) =>
     instance.delete(`${endpoint.CONTENT}/${postId}`),
+
+  searchAll: (query: string) =>
+    instance
+      .get<{ data: ISearchResult }>(`${endpoint.SEARCH}?q=${query}`)
+      .then((res) => res.data.data),
 };
 
 export default contentServices;
