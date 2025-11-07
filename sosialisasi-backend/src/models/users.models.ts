@@ -17,6 +17,7 @@ export interface User {
   role?: string;
   isActive: boolean;
   activationCode: string;
+  connections?: mongoose.Types.ObjectId[];
   createdAt?: string;
 }
 
@@ -65,6 +66,13 @@ const UserSchema = new Schema<User>(
       type: Schema.Types.Boolean,
       default: false,
     },
+    connections: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
     activationCode: {
       type: Schema.Types.String,
     },

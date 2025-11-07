@@ -4,7 +4,6 @@ import ContentModel from "../models/content.models";
 import { IReqUser } from "../middlewares/auth.middleware";
 import fs from "fs";
 import path from "path";
-import LikeModel from "../models/like.models";
 import CommentModel from "../models/comment.models";
 
 const contentValidateSchema = Yup.object({
