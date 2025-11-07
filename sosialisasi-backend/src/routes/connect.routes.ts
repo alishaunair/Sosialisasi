@@ -11,5 +11,6 @@ router.patch(
   authMiddleware,
   connectionControlllers.rejectConnection
 );
+router.get("/", authMiddleware, connectionControlllers.getConnections);
 
 export default router;
