@@ -28,29 +28,29 @@ export default {
         targetUser.connections = [];
       }
 
-      const existingConnection = targetUser.connections.find(
+      const existingConnectionIndex = targetUser.connections.findIndex(
         (conn: any) => conn.user.toString() === currentUserId.toString()
       );
 
-      if (existingConnection) {
-        return res.status(400).json({
-          message:
-            existingConnection.status === "pending"
-              ? "Permintaan koneksi sudah dikirim."
-              : "Kalian sudah terhubung.",
+      if (existingConnectionIndex !== -1) {
+        targetUser.connections.splice(existingConnectionIndex, 1);
+        await targetUser.save();
+
+        return res.status(200).json({
+          message: "Koneksi dibatalkan.",
+        });
+      } else {
+        targetUser.connections.push({
+          user: new mongoose.Types.ObjectId(currentUserId),
+          status: "pending",
+        } as any);
+
+        await targetUser.save();
+
+        return res.status(200).json({
+          message: "Permintaan koneksi berhasil dikirim.",
         });
       }
-
-      targetUser.connections.push({
-        user: new mongoose.Types.ObjectId(currentUserId),
-        status: "pending",
-      } as any);
-
-      await targetUser.save();
-
-      return res.status(200).json({
-        message: "Permintaan koneksi berhasil dikirim.",
-      });
     } catch (error) {
       console.error(error);
       return res.status(500).json({

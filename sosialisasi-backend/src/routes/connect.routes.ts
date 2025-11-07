@@ -4,6 +4,6 @@ import connectionControlllers from "../controllers/connection.controlllers";
 
 const router = express.Router();
 
-router.patch("/", authMiddleware, connectionControlllers.connect);
+router.post("/", authMiddleware, connectionControlllers.connect);
 
 export default router;
