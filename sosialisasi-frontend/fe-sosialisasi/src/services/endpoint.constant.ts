@@ -4,6 +4,7 @@ const endpoint = {
   LIKE_TOGGLE: "/like/toggle",
   COMMENT: "/comment",
   CONTENT_ID: "/upload/contentuser",
+  SEARCH: "/search",
 };
 
 export default endpoint;

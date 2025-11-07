@@ -1,9 +1,9 @@
-// ...existing code...
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { ToasterContext } from "@/contexts/ToasterContext";
+import { useSearch } from "@/contexts/SearchContext";
 
 interface IPropTypes {
   showSearch?: boolean;
@@ -17,6 +17,14 @@ const DashboardLayoutNavbar = ({
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const { setToaster } = useContext(ToasterContext);
+  const { setSearchTerm } = useSearch();
+  const [localSearch, setLocalSearch] = useState("");
+
+  const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      setSearchTerm(localSearch.trim());
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -51,6 +59,9 @@ const DashboardLayoutNavbar = ({
           <input
             className="w-full bg-transparent text-sm placeholder-[#ADAEBC] focus:outline-none sm:text-base lg:text-lg"
             placeholder="Search Post, People, Opportunities.."
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            onKeyDown={handleSearchSubmit}
           />
         </div>
       )}
