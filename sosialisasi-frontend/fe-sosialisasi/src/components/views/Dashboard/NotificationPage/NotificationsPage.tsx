@@ -30,7 +30,6 @@ const NotificationsPage = () => {
               </p>
             )}
 
-            {/* List notifikasi */}
             {pendingConnections.map((conn) => (
               <div
                 key={conn.user._id}
