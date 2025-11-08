@@ -54,7 +54,7 @@ const HomePage = () => {
                 {users.map((user: any) => (
                   <div
                     key={user._id}
-                    className="flex flex-row items-center gap-3 sm:gap-4"
+                    className="flex cursor-pointer flex-row items-center gap-3 sm:gap-4"
                     onClick={() =>
                       router.push(`/dashboard/profileuser/${user._id}`)
                     }
@@ -97,7 +97,7 @@ const HomePage = () => {
               >
                 <div className="flex flex-row items-center gap-3 sm:gap-4">
                   <div
-                    className="flex flex-row items-center gap-3 sm:gap-4"
+                    className="flex cursor-pointer flex-row items-center gap-3 sm:gap-4"
                     onClick={() =>
                       router.push(`/dashboard/profileuser/${post.userId._id}`)
                     }
