@@ -16,42 +16,71 @@ export default {
       if (currentUserId.toString() === targetUserId) {
         return res
           .status(400)
-          .json({ message: "Tidak bisa mengikuti diri sendiri." });
+          .json({ message: "Tidak bisa berkoneksi dengan diri sendiri." });
       }
 
+      const currentUser = await UserModel.findById(currentUserId);
       const targetUser = await UserModel.findById(targetUserId);
-      if (!targetUser) {
+
+      if (!targetUser || !currentUser) {
         return res.status(404).json({ message: "User tidak ditemukan." });
       }
 
+      if (!Array.isArray(currentUser.connections)) {
+        currentUser.connections = [];
+      }
       if (!Array.isArray(targetUser.connections)) {
         targetUser.connections = [];
       }
 
-      const existingConnectionIndex = targetUser.connections.findIndex(
-        (conn: any) => conn.user.toString() === currentUserId.toString()
+      const existingConnectionCurrent = currentUser.connections.find(
+        (conn: any) => conn.user.toString() === targetUserId
       );
 
-      if (existingConnectionIndex !== -1) {
-        targetUser.connections.splice(existingConnectionIndex, 1);
+      const existingConnectionTarget = targetUser.connections.find(
+        (conn: any) => conn.user.toString() === currentUserId
+      );
+
+      // Jika koneksi sudah ada (baik sender maupun receiver), maka batalkan
+      if (existingConnectionCurrent || existingConnectionTarget) {
+        currentUser.connections = currentUser.connections.filter(
+          (conn: any) => conn.user.toString() !== targetUserId
+        );
+        targetUser.connections = targetUser.connections.filter(
+          (conn: any) => conn.user.toString() !== currentUserId
+        );
+
+        await currentUser.save();
         await targetUser.save();
 
         return res.status(200).json({
           message: "Koneksi dibatalkan.",
         });
-      } else {
-        targetUser.connections.push({
-          user: new mongoose.Types.ObjectId(currentUserId),
-          status: "pending",
-        } as any);
-
-        await targetUser.save();
-
-        return res.status(200).json({
-          message: "Permintaan koneksi berhasil dikirim.",
-          data: targetUser,
-        });
       }
+
+      // Jika belum ada koneksi, buat koneksi baru (sender - receiver)
+      currentUser.connections.push({
+        user: new mongoose.Types.ObjectId(targetUserId),
+        status: "pending",
+        role: "receiver",
+      });
+
+      targetUser.connections.push({
+        user: new mongoose.Types.ObjectId(currentUserId),
+        status: "pending",
+        role: "sender",
+      });
+
+      await currentUser.save();
+      await targetUser.save();
+
+      return res.status(200).json({
+        message: "Permintaan koneksi berhasil dikirim.",
+        data: {
+          sender: currentUser,
+          receiver: targetUser,
+        },
+      });
     } catch (error) {
       console.error(error);
       return res.status(500).json({
@@ -87,23 +116,21 @@ export default {
         });
       }
 
-      const requesterUser = await UserModel.findById(requesterId);
-      if (requesterUser) {
-        if (!Array.isArray(requesterUser.connections)) {
-          requesterUser.connections = [];
-        }
+      const requesterUser = await UserModel.findOneAndUpdate(
+        {
+          _id: requesterId,
+          "connections.user": currentUserId,
+        },
+        {
+          $set: { "connections.$.status": "accepted" },
+        },
+        { new: true }
+      );
 
-        const alreadyConnected = requesterUser.connections.find(
-          (conn: any) => conn.user.toString() === currentUserId.toString()
-        );
-
-        if (!alreadyConnected) {
-          requesterUser.connections.push({
-            user: new mongoose.Types.ObjectId(currentUserId),
-            status: "accepted",
-          } as any);
-          await requesterUser.save();
-        }
+      if (!requesterUser) {
+        return res.status(404).json({
+          message: "Permintaan koneksi tidak ditemukan.",
+        });
       }
 
       return res.status(200).json({
@@ -178,7 +205,7 @@ export default {
       }
 
       const pendingConnections = user.connections?.filter(
-        (conn) => conn.status === "pending"
+        (conn) => conn.status === "pending" && conn.role === "sender"
       );
 
       res.status(200).json({
@@ -215,7 +242,23 @@ export default {
         }
       );
 
+      const RequestUser = await UserModel.updateOne(
+        {
+          _id: requesterId,
+          "connections.user": currentUserId,
+          "connections.status": "pending",
+        },
+        {
+          $pull: { connections: { user: currentUserId } },
+        }
+      );
+
       if (updatedUser.modifiedCount === 0) {
+        return res.status(404).json({
+          message: "Permintaan koneksi tidak ditemukan atau sudah diproses.",
+        });
+      }
+      if (RequestUser.modifiedCount === 0) {
         return res.status(404).json({
           message: "Permintaan koneksi tidak ditemukan atau sudah diproses.",
         });

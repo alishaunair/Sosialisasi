@@ -10,7 +10,6 @@ const useNotificationPage = () => {
   const queryClient = useQueryClient();
   const { setToaster } = useContext(ToasterContext);
 
-  // === Ambil koneksi yang sudah diterima ===
   const {
     data: connections = [],
     isLoading: isLoadingConnections,
@@ -21,7 +20,6 @@ const useNotificationPage = () => {
     enabled: !!session,
   });
 
-  // === Ambil permintaan koneksi yang masih pending ===
   const {
     data: pendingConnections = [],
     isLoading: isLoadingPending,
@@ -32,7 +30,6 @@ const useNotificationPage = () => {
     enabled: !!session,
   });
 
-  // === Terima koneksi ===
   const { mutate: handleAcceptConnection } = useMutation({
     mutationFn: connectionServices.acceptConnection,
     onSuccess: () => {
@@ -51,7 +48,6 @@ const useNotificationPage = () => {
     },
   });
 
-  // === Tolak koneksi ===
   const { mutate: handleRejectConnection } = useMutation({
     mutationFn: connectionServices.rejectConnection,
     onSuccess: () => {
@@ -69,9 +65,9 @@ const useNotificationPage = () => {
     },
   });
 
-  // === Kirim atau batalkan permintaan koneksi ===
   const { mutate: handleToggleConnection } = useMutation({
-    mutationFn: connectionServices.toggleConnection,
+    mutationFn: ({ id, action }: { id: string; action: string }) =>
+      connectionServices.toggleConnection(id, action),
     onSuccess: (res) => {
       setToaster({
         type: "success",
@@ -79,6 +75,7 @@ const useNotificationPage = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["connections"] });
       queryClient.invalidateQueries({ queryKey: ["pending-connections"] });
+      queryClient.invalidateQueries({ queryKey: ["connection-status"] });
     },
     onError: () => {
       setToaster({

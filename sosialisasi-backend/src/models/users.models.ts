@@ -8,6 +8,7 @@ const Schema = mongoose.Schema;
 export interface Connection {
   user: mongoose.Types.ObjectId;
   status: "pending" | "accepted" | "rejected";
+  role: "sender" | "receiver";
 }
 
 export interface User {
@@ -82,6 +83,11 @@ const UserSchema = new Schema<User>(
           type: String,
           enum: ["pending", "accepted"],
           default: "pending",
+        },
+        role: {
+          type: String,
+          enum: ["sender", "receiver"],
+          required: true,
         },
       },
       {

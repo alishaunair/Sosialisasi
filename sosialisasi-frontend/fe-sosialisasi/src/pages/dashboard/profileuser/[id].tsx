@@ -1,11 +1,12 @@
 import { useRouter } from "next/router";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import useHomePage from "@/components/hooks/useHomePage";
 import CommentSection from "@/components/views/Dashboard/HomePage/CommentSectionPage";
 import { IPost } from "@/types/Home";
+import useNotificationPage from "@/components/hooks/useNotificationPage";
 
 interface IUserProfile {
   _id: string;
@@ -15,12 +16,23 @@ interface IUserProfile {
   universitas: string;
   linkedinLink?: string;
   profilePicture?: string;
+  connections?: {
+    user: string;
+    status: "pending" | "accepted";
+    role: "sender" | "receiver";
+  }[];
 }
 
 const ProfileUserPage = () => {
+  const { handleToggleConnection, handleAcceptConnection } =
+    useNotificationPage();
   const router = useRouter();
   const { id } = router.query;
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [localConnectionStatus, setLocalConnectionStatus] = useState<
+    string | null
+  >(null);
 
   const {
     currentUserId,
@@ -34,12 +46,14 @@ const ProfileUserPage = () => {
     handleShare,
   } = useHomePage();
 
+  // Kalau user buka profil dirinya sendiri, arahkan ke /dashboard/profile
   useEffect(() => {
     if (id && currentUserId && id === currentUserId) {
       router.replace("/dashboard/profile");
     }
   }, [id, currentUserId, router]);
 
+  // --- FETCH PROFILE ---
   const {
     data: profile,
     isLoading: loadingProfile,
@@ -59,6 +73,22 @@ const ProfileUserPage = () => {
     enabled: !!id && id !== currentUserId,
   });
 
+  // --- CEK STATUS KONEKSI ---
+  const connectionStatus = useMemo(() => {
+    if (localConnectionStatus) return localConnectionStatus;
+    if (!profile?.connections || !currentUserId) return "none";
+
+    const existing = profile.connections.find(
+      (conn) => conn.user === currentUserId,
+    );
+
+    if (!existing) return "none";
+    if (existing.status === "pending") return "pending";
+    if (existing.status === "accepted") return "accepted";
+    return "none";
+  }, [profile, currentUserId, localConnectionStatus]);
+
+  // --- FETCH POST USER ---
   const { data: posts, isLoading: loadingPosts } = useQuery<IPost[]>({
     queryKey: ["user-posts", id],
     queryFn: async () => {
@@ -75,6 +105,7 @@ const ProfileUserPage = () => {
     },
     enabled: !!id && id !== currentUserId,
   });
+
   const toggleMenu = (postId: string) => {
     setOpenMenu(openMenu === postId ? null : postId);
   };
@@ -148,11 +179,153 @@ const ProfileUserPage = () => {
                             </a>
                           </p>
                         </div>
-                        <button className="flex w-full cursor-pointer flex-row items-center justify-center rounded-lg bg-[#5568FE] px-3 py-2 transition-colors hover:bg-[#5568FE]/90 sm:w-auto sm:rounded-xl sm:px-4">
-                          <p className="text-sm font-bold text-white sm:text-base lg:text-[19px]">
-                            Berkoneksi
-                          </p>
-                        </button>
+
+                        {connectionStatus === "accepted" ? (
+                          <button
+                            disabled
+                            className="cursor-not-allowed rounded-lg bg-green-100 px-4 py-2 font-semibold text-green-600"
+                          >
+                            Terkoneksi
+                          </button>
+                        ) : connectionStatus === "pending" &&
+                          profile?.connections?.some(
+                            (conn) =>
+                              conn.user === currentUserId &&
+                              conn.status === "pending" &&
+                              conn.role === "receiver",
+                          ) ? (
+                          // === Jika RECEIVER & pending → tombol Terima ===
+                          <button
+                            className="rounded-lg bg-green-100 px-4 py-2 font-semibold text-green-600 hover:bg-green-200"
+                            onClick={() => {
+                              const userId = Array.isArray(id) ? id[0] : id;
+                              if (!userId) return;
+                              setIsConnecting(true);
+                              handleAcceptConnection(
+                                userId, // parameter sesuai kebutuhan mutationFn
+                                {
+                                  onSettled: () => setIsConnecting(false),
+                                  onSuccess: () =>
+                                    setLocalConnectionStatus("accepted"),
+                                },
+                              );
+                            }}
+                            disabled={isConnecting}
+                          >
+                            {isConnecting ? (
+                              <svg
+                                className="mx-auto h-5 w-5 animate-spin text-black"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                ></path>
+                              </svg>
+                            ) : (
+                              "Terima"
+                            )}
+                          </button>
+                        ) : connectionStatus === "pending" ? (
+                          // === Jika SENDER & pending → tombol kuning ===
+                          <button
+                            className="rounded-lg bg-yellow-100 px-4 py-2 font-semibold text-yellow-600 hover:bg-yellow-200"
+                            onClick={() => {
+                              const userId = Array.isArray(id) ? id[0] : id;
+                              if (!userId) return;
+                              setIsConnecting(true);
+                              handleToggleConnection(
+                                { id: userId, action: "cancel" },
+                                {
+                                  onSettled: () => setIsConnecting(false),
+                                  onSuccess: () =>
+                                    setLocalConnectionStatus("none"),
+                                },
+                              );
+                            }}
+                            disabled={isConnecting}
+                          >
+                            {isConnecting ? (
+                              <svg
+                                className="mx-auto h-5 w-5 animate-spin text-black"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                ></path>
+                              </svg>
+                            ) : (
+                              "Batalkan"
+                            )}
+                          </button>
+                        ) : (
+                          // === Belum terhubung ===
+                          <button
+                            className="rounded-lg bg-[#5568FE] px-4 py-3 font-semibold text-white hover:bg-[#4456d9]"
+                            onClick={() => {
+                              const userId = Array.isArray(id) ? id[0] : id;
+                              if (!userId) return;
+                              setIsConnecting(true);
+                              handleToggleConnection(
+                                { id: userId, action: "connect" },
+                                {
+                                  onSettled: () => setIsConnecting(false),
+                                  onSuccess: () =>
+                                    setLocalConnectionStatus("pending"),
+                                },
+                              );
+                            }}
+                            disabled={isConnecting}
+                          >
+                            {isConnecting ? (
+                              <svg
+                                className="mx-auto h-5 w-5 animate-spin text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                ></path>
+                              </svg>
+                            ) : (
+                              "Berkoneksi"
+                            )}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

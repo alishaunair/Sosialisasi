@@ -3,7 +3,7 @@ import endpoint from "./endpoint.constant";
 import { IConnection } from "@/types/Home";
 
 const connectionServices = {
-  toggleConnection: (targetUserId: string) =>
+  toggleConnection: (targetUserId: string, action?: string) =>
     instance
       .post<{
         message: string;
