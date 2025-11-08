@@ -2,8 +2,10 @@ import DashboardLayout from "@/components/layouts/DashboardLayout";
 import useHomePage from "../../../hooks/useHomePage";
 import Image from "next/image";
 import CommentSection from "./CommentSectionPage";
+import { useRouter } from "next/router";
 
 const HomePage = () => {
+  const router = useRouter();
   const {
     posts,
     users,
@@ -52,7 +54,10 @@ const HomePage = () => {
                 {users.map((user: any) => (
                   <div
                     key={user._id}
-                    className="flex flex-row items-center gap-3 sm:gap-4"
+                    className="flex cursor-pointer flex-row items-center gap-3 sm:gap-4"
+                    onClick={() =>
+                      router.push(`/dashboard/profileuser/${user._id}`)
+                    }
                   >
                     <Image
                       src={`http://localhost:3001${user.profilePicture}`}
@@ -91,23 +96,30 @@ const HomePage = () => {
                 className="flex w-full flex-col rounded-lg bg-white p-3 shadow-sm sm:rounded-2xl sm:p-4 lg:p-6"
               >
                 <div className="flex flex-row items-center gap-3 sm:gap-4">
-                  <Image
-                    src={`http://localhost:3001${post.userId.profilePicture}`}
-                    alt="Profile Picture"
-                    width={48}
-                    height={48}
-                    className="h-10 w-10 flex-shrink-0 rounded-full object-cover sm:h-12 sm:w-12 lg:h-14 lg:w-14"
-                  />
-                  <div className="flex min-w-0 flex-col">
-                    <h3 className="truncate text-base font-semibold text-gray-900 sm:text-lg lg:text-xl">
-                      {post.userId.fullName || "Unknown User"}
-                    </h3>
-                    <span className="text-xs text-gray-500 sm:text-sm">
-                      {new Date(post.created_at_content).toLocaleString(
-                        "id-ID",
-                        { dateStyle: "medium", timeStyle: "short" },
-                      )}
-                    </span>
+                  <div
+                    className="flex cursor-pointer flex-row items-center gap-3 sm:gap-4"
+                    onClick={() =>
+                      router.push(`/dashboard/profileuser/${post.userId._id}`)
+                    }
+                  >
+                    <Image
+                      src={`http://localhost:3001${post.userId.profilePicture}`}
+                      alt="Profile Picture"
+                      width={48}
+                      height={48}
+                      className="h-10 w-10 flex-shrink-0 rounded-full object-cover sm:h-12 sm:w-12 lg:h-14 lg:w-14"
+                    />
+                    <div className="flex min-w-0 flex-col">
+                      <h3 className="truncate text-base font-semibold text-gray-900 sm:text-lg lg:text-xl">
+                        {post.userId.fullName || "Unknown User"}
+                      </h3>
+                      <span className="text-xs text-gray-500 sm:text-sm">
+                        {new Date(post.created_at_content).toLocaleString(
+                          "id-ID",
+                          { dateStyle: "medium", timeStyle: "short" },
+                        )}
+                      </span>
+                    </div>
                   </div>
                   <div
                     className={

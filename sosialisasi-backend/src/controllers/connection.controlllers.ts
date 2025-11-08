@@ -1,0 +1,278 @@
+import { Response } from "express";
+import UserModel from "../models/users.models";
+import { IReqUser } from "../middlewares/auth.middleware";
+import mongoose from "mongoose";
+
+export default {
+  async connect(req: IReqUser, res: Response) {
+    try {
+      const currentUserId = req.user?.id;
+      const targetUserId = req.params.id.trim();
+
+      if (!currentUserId) {
+        return res.status(401).json({ message: "User tidak terautentikasi." });
+      }
+
+      if (currentUserId.toString() === targetUserId) {
+        return res
+          .status(400)
+          .json({ message: "Tidak bisa berkoneksi dengan diri sendiri." });
+      }
+
+      const currentUser = await UserModel.findById(currentUserId);
+      const targetUser = await UserModel.findById(targetUserId);
+
+      if (!targetUser || !currentUser) {
+        return res.status(404).json({ message: "User tidak ditemukan." });
+      }
+
+      if (!Array.isArray(currentUser.connections)) {
+        currentUser.connections = [];
+      }
+      if (!Array.isArray(targetUser.connections)) {
+        targetUser.connections = [];
+      }
+
+      const existingConnectionCurrent = currentUser.connections.find(
+        (conn: any) => conn.user.toString() === targetUserId
+      );
+
+      const existingConnectionTarget = targetUser.connections.find(
+        (conn: any) => conn.user.toString() === currentUserId
+      );
+
+      // Jika koneksi sudah ada (baik sender maupun receiver), maka batalkan
+      if (existingConnectionCurrent || existingConnectionTarget) {
+        currentUser.connections = currentUser.connections.filter(
+          (conn: any) => conn.user.toString() !== targetUserId
+        );
+        targetUser.connections = targetUser.connections.filter(
+          (conn: any) => conn.user.toString() !== currentUserId
+        );
+
+        await currentUser.save();
+        await targetUser.save();
+
+        return res.status(200).json({
+          message: "Koneksi dibatalkan.",
+        });
+      }
+
+      // Jika belum ada koneksi, buat koneksi baru (sender - receiver)
+      currentUser.connections.push({
+        user: new mongoose.Types.ObjectId(targetUserId),
+        status: "pending",
+        role: "receiver",
+      });
+
+      targetUser.connections.push({
+        user: new mongoose.Types.ObjectId(currentUserId),
+        status: "pending",
+        role: "sender",
+      });
+
+      await currentUser.save();
+      await targetUser.save();
+
+      return res.status(200).json({
+        message: "Permintaan koneksi berhasil dikirim.",
+        data: {
+          sender: currentUser,
+          receiver: targetUser,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Terjadi kesalahan server saat memproses koneksi.",
+        error,
+      });
+    }
+  },
+
+  async acceptConnection(req: IReqUser, res: Response) {
+    try {
+      const currentUserId = req.user?.id;
+      const requesterId = req.params.id.trim();
+
+      if (!currentUserId) {
+        return res.status(401).json({ message: "User tidak terautentikasi." });
+      }
+
+      const updatedUser = await UserModel.findOneAndUpdate(
+        {
+          _id: currentUserId,
+          "connections.user": requesterId,
+        },
+        {
+          $set: { "connections.$.status": "accepted" },
+        },
+        { new: true }
+      );
+
+      if (!updatedUser) {
+        return res.status(404).json({
+          message: "Permintaan koneksi tidak ditemukan.",
+        });
+      }
+
+      const requesterUser = await UserModel.findOneAndUpdate(
+        {
+          _id: requesterId,
+          "connections.user": currentUserId,
+        },
+        {
+          $set: { "connections.$.status": "accepted" },
+        },
+        { new: true }
+      );
+
+      if (!requesterUser) {
+        return res.status(404).json({
+          message: "Permintaan koneksi tidak ditemukan.",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Permintaan koneksi diterima dan hubungan terjalin.",
+        data: requesterUser,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Terjadi kesalahan server saat menerima koneksi.",
+        error,
+      });
+    }
+  },
+
+  async getConnections(req: IReqUser, res: Response) {
+    try {
+      const currentUserId = req.user?.id;
+
+      if (!currentUserId) {
+        return res.status(401).json({
+          message: "User tidak terautentikasi.",
+        });
+      }
+
+      const user = await UserModel.findById(currentUserId)
+        .populate("connections.user", "fullName profilePicture")
+        .lean();
+
+      if (!user) {
+        return res.status(404).json({
+          message: "User tidak ditemukan.",
+        });
+      }
+
+      const acceptedConnections = user.connections?.filter(
+        (conn) => conn.status === "accepted"
+      );
+
+      res.status(200).json({
+        message: "Berhasil mengambil daftar connections Anda.",
+        totalConnections: acceptedConnections?.length || 0,
+        data: acceptedConnections,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: "Terjadi kesalahan saat mengambil data connections.",
+        error,
+      });
+    }
+  },
+
+  async getPendingConnections(req: IReqUser, res: Response) {
+    try {
+      const currentUserId = req.user?.id;
+
+      if (!currentUserId) {
+        return res.status(401).json({
+          message: "User tidak terautentikasi.",
+        });
+      }
+
+      const user = await UserModel.findById(currentUserId)
+        .populate("connections.user", "fullName profilePicture")
+        .lean();
+
+      if (!user) {
+        return res.status(404).json({
+          message: "User tidak ditemukan.",
+        });
+      }
+
+      const pendingConnections = user.connections?.filter(
+        (conn) => conn.status === "pending" && conn.role === "sender"
+      );
+
+      res.status(200).json({
+        message: "Berhasil mengambil daftar permintaan koneksi.",
+        totalPending: pendingConnections?.length || 0,
+        data: pendingConnections,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: "Terjadi kesalahan saat mengambil data pending connections.",
+        error,
+      });
+    }
+  },
+
+  async rejectConnection(req: IReqUser, res: Response) {
+    try {
+      const currentUserId = req.user?.id;
+      const requesterId = req.params.id.trim();
+
+      if (!currentUserId) {
+        return res.status(401).json({ message: "User tidak terautentikasi." });
+      }
+
+      const updatedUser = await UserModel.updateOne(
+        {
+          _id: currentUserId,
+          "connections.user": requesterId,
+          "connections.status": "pending",
+        },
+        {
+          $pull: { connections: { user: requesterId } },
+        }
+      );
+
+      const RequestUser = await UserModel.updateOne(
+        {
+          _id: requesterId,
+          "connections.user": currentUserId,
+          "connections.status": "pending",
+        },
+        {
+          $pull: { connections: { user: currentUserId } },
+        }
+      );
+
+      if (updatedUser.modifiedCount === 0) {
+        return res.status(404).json({
+          message: "Permintaan koneksi tidak ditemukan atau sudah diproses.",
+        });
+      }
+      if (RequestUser.modifiedCount === 0) {
+        return res.status(404).json({
+          message: "Permintaan koneksi tidak ditemukan atau sudah diproses.",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Permintaan koneksi berhasil ditolak dan dihapus.",
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Terjadi kesalahan server saat menolak koneksi.",
+        error,
+      });
+    }
+  },
+};

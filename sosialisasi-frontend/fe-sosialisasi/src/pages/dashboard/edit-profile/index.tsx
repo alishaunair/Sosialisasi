@@ -1,4 +1,4 @@
-import EditProfile from "@/components/hooks/EditProfilePage";
+import EditProfile from "@/components/views/Dashboard/EditProfilePage";
 
 const page = () => {
   return <EditProfile />;

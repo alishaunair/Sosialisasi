@@ -4,7 +4,6 @@ import ContentModel from "../models/content.models";
 import { IReqUser } from "../middlewares/auth.middleware";
 import fs from "fs";
 import path from "path";
-import LikeModel from "../models/like.models";
 import CommentModel from "../models/comment.models";
 
 const contentValidateSchema = Yup.object({
@@ -190,6 +189,49 @@ export default {
 
       res.status(200).json({
         message: "Berhasil mengambil semua konten pengguna",
+        data: transformedContents,
+      });
+    } catch (error) {
+      const err = error as Error;
+      res.status(500).json({
+        message: "Terjadi kesalahan saat mengambil data konten",
+        error: err.message,
+      });
+    }
+  },
+  async getByUserId(req: IReqUser, res: Response) {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        return res.status(400).json({
+          message: "Parameter user_id diperlukan.",
+        });
+      }
+
+      const contents = await ContentModel.find({ userId: id })
+        .populate("userId", "fullName profilePicture")
+        .sort({ created_at_content: -1 })
+        .lean();
+
+      const transformedContents = await Promise.all(
+        contents.map(async (content) => {
+          const commentsCount = await CommentModel.countDocuments({
+            id_content: content._id,
+          });
+
+          return {
+            ...content,
+            likes: content.likes?.map((like: any) => like.toString()) || [],
+            comments:
+              content.comments?.map((comment: any) => comment.toString()) || [],
+            commentsCount,
+          };
+        })
+      );
+
+      res.status(200).json({
+        message: "Berhasil mengambil semua konten pengguna berdasarkan ID",
         data: transformedContents,
       });
     } catch (error) {

@@ -5,6 +5,12 @@ import { CLIENT_HOST } from "../utils/env";
 
 const Schema = mongoose.Schema;
 
+export interface Connection {
+  user: mongoose.Types.ObjectId;
+  status: "pending" | "accepted" | "rejected";
+  role: "sender" | "receiver";
+}
+
 export interface User {
   profilePicture: string;
   fullName: string;
@@ -17,6 +23,7 @@ export interface User {
   role?: string;
   isActive: boolean;
   activationCode: string;
+  connections?: Connection[];
   createdAt?: string;
 }
 
@@ -65,6 +72,29 @@ const UserSchema = new Schema<User>(
       type: Schema.Types.Boolean,
       default: false,
     },
+    connections: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        status: {
+          type: String,
+          enum: ["pending", "accepted"],
+          default: "pending",
+        },
+        role: {
+          type: String,
+          enum: ["sender", "receiver"],
+          required: true,
+        },
+      },
+      {
+        timestamps: true,
+      },
+    ],
+
     activationCode: {
       type: Schema.Types.String,
     },

@@ -273,4 +273,29 @@ export default {
       });
     }
   },
+
+  async getUserById(req: IReqUser, res: Response) {
+    try {
+      const { id } = req.params;
+      const result = await UserModel.findById(id);
+
+      if (!result) {
+        return res.status(404).json({
+          message: "User not found",
+          data: null,
+        });
+      }
+
+      res.status(200).json({
+        message: "Success get user profile",
+        data: result,
+      });
+    } catch (error) {
+      const err = error as Error;
+      res.status(400).json({
+        message: err.message,
+        data: null,
+      });
+    }
+  },
 };

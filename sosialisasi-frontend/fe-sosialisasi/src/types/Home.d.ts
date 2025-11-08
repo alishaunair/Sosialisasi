@@ -34,3 +34,10 @@ export interface ISearchResult {
   users: IUserSearchResult[];
   contents: IPost[];
 }
+
+export interface IConnection {
+  user: IUser;
+  status: "pending" | "accepted";
+  role: "sender" | "receiver";
+  created_at_connection: string;
+}

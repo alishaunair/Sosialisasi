@@ -5,6 +5,7 @@ const endpoint = {
   COMMENT: "/comment",
   CONTENT_ID: "/upload/contentuser",
   SEARCH: "/search",
+  CONNECT: "/connect",
 };
 
 export default endpoint;

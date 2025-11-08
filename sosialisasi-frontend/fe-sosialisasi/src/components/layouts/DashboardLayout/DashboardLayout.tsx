@@ -5,9 +5,10 @@ import DashboardLayoutSidebar from "./DashboardLayoutSidebar";
 interface IPropTypes {
   children: React.ReactNode;
   showSearch?: boolean;
+  showNotif?: boolean;
 }
 
-const DashboardLayout = ({ children, showSearch }: IPropTypes) => {
+const DashboardLayout = ({ children, showSearch, showNotif }: IPropTypes) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -17,6 +18,7 @@ const DashboardLayout = ({ children, showSearch }: IPropTypes) => {
     <main className="flex h-screen flex-col overflow-hidden bg-[#FAFAFF]">
       <DashboardLayoutNavbar
         showSearch={showSearch}
+        showNotif={showNotif}
         toggleSidebar={toggleSidebar}
       />
 

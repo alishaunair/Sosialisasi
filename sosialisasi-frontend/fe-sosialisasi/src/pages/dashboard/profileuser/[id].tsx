@@ -1,0 +1,574 @@
+import { useRouter } from "next/router";
+import Image from "next/image";
+import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
+import useHomePage from "@/components/hooks/useHomePage";
+import CommentSection from "@/components/views/Dashboard/HomePage/CommentSectionPage";
+import { IPost } from "@/types/Home";
+import useNotificationPage from "@/components/hooks/useNotificationPage";
+
+interface IUserProfile {
+  _id: string;
+  fullName: string;
+  status: string;
+  jurusan: string;
+  universitas: string;
+  linkedinLink?: string;
+  profilePicture?: string;
+  connections?: {
+    user: string;
+    status: "pending" | "accepted";
+    role: "sender" | "receiver";
+  }[];
+}
+
+const ProfileUserPage = () => {
+  const { handleToggleConnection, handleAcceptConnection } =
+    useNotificationPage();
+  const router = useRouter();
+  const { id } = router.query;
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [localConnectionStatus, setLocalConnectionStatus] = useState<
+    string | null
+  >(null);
+
+  const {
+    currentUserId,
+    visibleComments,
+    commentInputs,
+    isSendingComment,
+    handleToggleLike,
+    handleToggleComments,
+    handleInputChange,
+    handleSendComment,
+    handleShare,
+  } = useHomePage();
+
+  // Kalau user buka profil dirinya sendiri, arahkan ke /dashboard/profile
+  useEffect(() => {
+    if (id && currentUserId && id === currentUserId) {
+      router.replace("/dashboard/profile");
+    }
+  }, [id, currentUserId, router]);
+
+  // --- FETCH PROFILE ---
+  const {
+    data: profile,
+    isLoading: loadingProfile,
+    error: errorProfile,
+  } = useQuery<IUserProfile>({
+    queryKey: ["user-profile", id],
+    queryFn: async () => {
+      const userId = Array.isArray(id) ? id[0] : id;
+      if (!userId) throw new Error("User ID is required");
+
+      const res = await fetch(`http://localhost:3001/api/auth/user/${userId}`);
+      if (!res.ok)
+        throw new Error(`Failed to fetch user profile. Status: ${res.status}`);
+      const data = await res.json();
+      return data.data as IUserProfile;
+    },
+    enabled: !!id && id !== currentUserId,
+  });
+
+  // --- CEK STATUS KONEKSI ---
+  const connectionStatus = useMemo(() => {
+    if (localConnectionStatus) return localConnectionStatus;
+    if (!profile?.connections || !currentUserId) return "none";
+
+    const existing = profile.connections.find(
+      (conn) => conn.user === currentUserId,
+    );
+
+    if (!existing) return "none";
+    if (existing.status === "pending") return "pending";
+    if (existing.status === "accepted") return "accepted";
+    return "none";
+  }, [profile, currentUserId, localConnectionStatus]);
+
+  // --- FETCH POST USER ---
+  const { data: posts, isLoading: loadingPosts } = useQuery<IPost[]>({
+    queryKey: ["user-posts", id],
+    queryFn: async () => {
+      const userId = Array.isArray(id) ? id[0] : id;
+      if (!userId) throw new Error("User ID is required");
+
+      const res = await fetch(
+        `http://localhost:3001/api/upload/contentuser/${userId}`,
+      );
+      if (!res.ok)
+        throw new Error(`Failed to fetch user posts. Status: ${res.status}`);
+      const data = await res.json();
+      return data.data as IPost[];
+    },
+    enabled: !!id && id !== currentUserId,
+  });
+
+  const toggleMenu = (postId: string) => {
+    setOpenMenu(openMenu === postId ? null : postId);
+  };
+
+  if (loadingProfile)
+    return (
+      <p className="mt-10 text-center text-gray-500">Loading profile...</p>
+    );
+  if (errorProfile)
+    return (
+      <p className="mt-10 text-center text-red-500">{errorProfile.message}</p>
+    );
+  if (!profile)
+    return <p className="mt-10 text-center text-gray-500">User not found</p>;
+
+  return (
+    <DashboardLayout>
+      <div className="flex w-full flex-col gap-4 bg-gray-50 p-2 sm:gap-6 sm:p-4 lg:p-6">
+        <div className="grid w-full grid-cols-1 gap-4 px-2 sm:gap-6 sm:px-4 md:px-6 lg:grid-cols-[7fr_3fr] lg:px-8 xl:px-12">
+          <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
+            <article className="rounded-lg bg-white p-4 shadow-md sm:rounded-2xl sm:p-6 md:p-8 lg:p-10">
+              <div className="mb-6 flex flex-col gap-4 sm:mb-10 sm:gap-6 md:gap-8 lg:mb-14">
+                <div className="flex w-full flex-col gap-4">
+                  <div className="flex flex-col items-center justify-center gap-4 sm:gap-5 md:flex-row md:items-start md:justify-start">
+                    <Image
+                      src={
+                        profile?.profilePicture
+                          ? `http://localhost:3001${profile.profilePicture}`
+                          : "/images/logo.png"
+                      }
+                      alt={profile?.fullName || "User Avatar"}
+                      width={160}
+                      height={160}
+                      className="h-24 w-24 flex-shrink-0 rounded-full object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 lg:h-36 lg:w-36 xl:h-40 xl:w-40"
+                    />
+
+                    <div className="flex w-full flex-col gap-2 text-center sm:gap-3 md:flex-1 md:text-left">
+                      <h1 className="text-xl font-bold break-words text-[#1A1A1A] sm:text-2xl md:text-3xl lg:text-[32px]">
+                        {profile?.fullName}
+                      </h1>
+
+                      <div className="flex flex-row flex-wrap items-center justify-center gap-2 text-[#7A7A7A] md:justify-start">
+                        <i className="fa-solid fa-graduation-cap text-base sm:text-lg lg:text-[20px]"></i>
+                        <h3 className="font-regular text-sm sm:text-base lg:text-[20px]">
+                          <span>{profile?.status}</span>{" "}
+                          <span>{profile?.jurusan}</span> -{" "}
+                          <span>{profile?.universitas}</span>
+                        </h3>
+                      </div>
+
+                      <p className="mt-1 mb-2 text-sm font-semibold text-[#7A7A7A] sm:text-base lg:text-[20px]">
+                        300 Koneksi
+                      </p>
+
+                      <div className="flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3 md:justify-start lg:gap-5">
+                        <div className="flex w-full flex-row items-center justify-center gap-2 rounded-lg border-2 border-[#5568FE] px-3 py-2 transition-colors hover:bg-[#5568FE]/5 sm:w-auto sm:rounded-xl sm:px-4">
+                          <Image
+                            src={"/images/Linkedin.png"}
+                            width={20}
+                            height={20}
+                            alt="Linkedin"
+                            className="h-4 w-4 sm:h-5 sm:w-5"
+                          />
+                          <p className="text-sm font-medium text-[#5568FE] sm:text-base">
+                            <a
+                              href={profile?.linkedinLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Linkedin
+                            </a>
+                          </p>
+                        </div>
+
+                        {connectionStatus === "accepted" ? (
+                          <button
+                            disabled
+                            className="cursor-not-allowed rounded-lg bg-green-100 px-4 py-2 font-semibold text-green-600"
+                          >
+                            Terkoneksi
+                          </button>
+                        ) : connectionStatus === "pending" &&
+                          profile?.connections?.some(
+                            (conn) =>
+                              conn.user === currentUserId &&
+                              conn.status === "pending" &&
+                              conn.role === "receiver",
+                          ) ? (
+                          // === Jika RECEIVER & pending → tombol Terima ===
+                          <button
+                            className="rounded-lg bg-green-100 px-4 py-2 font-semibold text-green-600 hover:bg-green-200"
+                            onClick={() => {
+                              const userId = Array.isArray(id) ? id[0] : id;
+                              if (!userId) return;
+                              setIsConnecting(true);
+                              handleAcceptConnection(
+                                userId, // parameter sesuai kebutuhan mutationFn
+                                {
+                                  onSettled: () => setIsConnecting(false),
+                                  onSuccess: () =>
+                                    setLocalConnectionStatus("accepted"),
+                                },
+                              );
+                            }}
+                            disabled={isConnecting}
+                          >
+                            {isConnecting ? (
+                              <svg
+                                className="mx-auto h-5 w-5 animate-spin text-black"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                ></path>
+                              </svg>
+                            ) : (
+                              "Terima"
+                            )}
+                          </button>
+                        ) : connectionStatus === "pending" ? (
+                          // === Jika SENDER & pending → tombol kuning ===
+                          <button
+                            className="rounded-lg bg-yellow-100 px-4 py-2 font-semibold text-yellow-600 hover:bg-yellow-200"
+                            onClick={() => {
+                              const userId = Array.isArray(id) ? id[0] : id;
+                              if (!userId) return;
+                              setIsConnecting(true);
+                              handleToggleConnection(
+                                { id: userId, action: "cancel" },
+                                {
+                                  onSettled: () => setIsConnecting(false),
+                                  onSuccess: () =>
+                                    setLocalConnectionStatus("none"),
+                                },
+                              );
+                            }}
+                            disabled={isConnecting}
+                          >
+                            {isConnecting ? (
+                              <svg
+                                className="mx-auto h-5 w-5 animate-spin text-black"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                ></path>
+                              </svg>
+                            ) : (
+                              "Batalkan"
+                            )}
+                          </button>
+                        ) : (
+                          // === Belum terhubung ===
+                          <button
+                            className="rounded-lg bg-[#5568FE] px-4 py-3 font-semibold text-white hover:bg-[#4456d9]"
+                            onClick={() => {
+                              const userId = Array.isArray(id) ? id[0] : id;
+                              if (!userId) return;
+                              setIsConnecting(true);
+                              handleToggleConnection(
+                                { id: userId, action: "connect" },
+                                {
+                                  onSettled: () => setIsConnecting(false),
+                                  onSuccess: () =>
+                                    setLocalConnectionStatus("pending"),
+                                },
+                              );
+                            }}
+                            disabled={isConnecting}
+                          >
+                            {isConnecting ? (
+                              <svg
+                                className="mx-auto h-5 w-5 animate-spin text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                ></path>
+                              </svg>
+                            ) : (
+                              "Berkoneksi"
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="border border-[#E7E7E7]"></div>
+            </article>
+
+            <div className="mb-5 flex w-full flex-col gap-4 rounded-lg bg-white p-3 shadow-md sm:gap-6 sm:rounded-2xl sm:p-4 lg:gap-7 lg:p-6">
+              <h1 className="text-xl font-semibold text-[#1A1A1A] sm:text-2xl lg:text-[28px]">
+                Postingan
+              </h1>
+
+              {loadingPosts ? (
+                <p className="text-center text-gray-500">Loading...</p>
+              ) : posts && posts.length > 0 ? (
+                posts.map((post) => {
+                  const showMenu = openMenu === post._id;
+                  const hasLiked = currentUserId
+                    ? post.likes.includes(currentUserId)
+                    : false;
+                  const showComments = visibleComments[post._id] || false;
+
+                  return (
+                    <article key={post._id} className="flex flex-col">
+                      <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-4">
+                        <div className="flex min-w-0 flex-1 flex-row items-center gap-3 sm:gap-4">
+                          <img
+                            src={
+                              post.userId?.profilePicture
+                                ? `http://localhost:3001${post.userId.profilePicture}`
+                                : "/images/logo.png"
+                            }
+                            alt="User"
+                            className="h-9 w-9 flex-shrink-0 rounded-full bg-black object-cover sm:h-10 sm:w-10 md:h-12 md:w-12"
+                          />
+                          <div className="flex min-w-0 flex-1 flex-col">
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <h3 className="truncate text-sm font-semibold text-[#202020] sm:text-base lg:text-xl">
+                                {post.userId?.fullName || "Nama Pengguna"}
+                              </h3>
+                              <div
+                                className={
+                                  post.type_content === "Competition"
+                                    ? "rounded-full bg-[#FFB27C]/10 px-8 py-1 sm:px-8 sm:py-1"
+                                    : post.type_content === "Project"
+                                      ? "rounded-full bg-[#16A34A]/10 px-8 py-1 sm:px-8 sm:py-1"
+                                      : "rounded-full bg-[#5568FE]/10 px-8 py-1 sm:px-8 sm:py-1"
+                                }
+                              >
+                                <h5
+                                  className={
+                                    post.type_content === "Competition"
+                                      ? "text-xs font-medium text-[#FFB27C] sm:text-sm"
+                                      : post.type_content === "Project"
+                                        ? "text-xs font-medium text-[#16A34A] sm:text-sm"
+                                        : "text-xs font-medium text-[#5568FE] sm:text-sm"
+                                  }
+                                >
+                                  {post.type_content || "Project"}
+                                </h5>
+                              </div>
+                            </div>
+                            <h4 className="text-xs text-[#787878] sm:text-[13px] lg:text-[15px]">
+                              {new Date(post.created_at_content).toLocaleString(
+                                "id-ID",
+                                {
+                                  dateStyle: "medium",
+                                  timeStyle: "short",
+                                },
+                              )}
+                            </h4>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 sm:mt-4">
+                        <p className="text-sm break-words whitespace-pre-wrap text-[#202020] sm:text-base lg:text-lg">
+                          {post.text_content}
+                        </p>
+                      </div>
+
+                      {post.attachmentUrl_content && (
+                        <img
+                          src={`http://localhost:3001${post.attachmentUrl_content}`}
+                          alt="Attachment"
+                          className="mt-3 max-h-96 w-full rounded-lg object-cover sm:max-h-[500px] sm:rounded-xl"
+                        />
+                      )}
+
+                      <div className="mt-3 flex items-center justify-between text-gray-600 sm:mt-4 lg:mt-5">
+                        <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
+                          <button
+                            onClick={() => handleToggleLike(post._id)}
+                            className="flex items-center gap-1.5 transition-colors hover:text-red-500 sm:gap-2"
+                          >
+                            <i
+                              className={`fa-heart text-base sm:text-lg lg:text-xl ${
+                                hasLiked
+                                  ? "fa-solid text-red-500"
+                                  : "fa-regular"
+                              }`}
+                            ></i>
+                            <span className="text-xs font-medium sm:text-sm">
+                              {post.likes.length}
+                            </span>
+                          </button>
+
+                          <button
+                            onClick={() => handleToggleComments(post._id)}
+                            className="flex items-center gap-1.5 transition-colors hover:text-[#5568FE] sm:gap-2"
+                          >
+                            <i className="fa-regular fa-comment text-base sm:text-lg lg:text-xl"></i>
+                            <span className="text-xs font-medium sm:text-sm">
+                              {post.comments?.length || 0}
+                            </span>
+                          </button>
+
+                          <button
+                            onClick={() => handleShare(post._id)}
+                            className="transition-colors hover:text-gray-900"
+                          >
+                            <i className="fa-solid fa-share cursor-pointer text-base sm:text-lg lg:text-xl"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      {showComments && (
+                        <article className="mt-4 flex w-full flex-col sm:mt-5 lg:mt-7">
+                          <div className="mb-3 flex flex-col items-stretch gap-2 sm:mb-4 sm:flex-row sm:items-center sm:gap-3 lg:gap-4">
+                            <div className="h-auto w-full rounded-lg border-2 border-[#E5E7EB] bg-[#FAFAFF] px-3 sm:px-4">
+                              <textarea
+                                placeholder="Write a Comment"
+                                className="mt-1 mb-1 w-full resize-none overflow-hidden bg-transparent text-sm focus:outline-none sm:text-base"
+                                rows={1}
+                                value={commentInputs[post._id] || ""}
+                                onChange={(e) =>
+                                  handleInputChange(post._id, e.target.value)
+                                }
+                                onInput={(e) => {
+                                  e.currentTarget.style.height = "auto";
+                                  e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                                }}
+                              />
+                            </div>
+
+                            <button
+                              onClick={() => handleSendComment(post._id)}
+                              disabled={
+                                isSendingComment || !commentInputs[post._id]
+                              }
+                              className="flex h-9 w-full flex-row items-center justify-center gap-2 rounded-lg bg-[#5568FE] text-white transition-colors hover:bg-[#5568FE]/80 disabled:cursor-not-allowed disabled:bg-gray-400 sm:h-10 sm:w-auto sm:min-w-[80px] lg:min-w-[90px]"
+                            >
+                              <i className="fas fa-paper-plane text-xs sm:text-sm"></i>
+                              <h2 className="text-xs font-bold sm:text-sm">
+                                {isSendingComment ? "Sending..." : "Send"}
+                              </h2>
+                            </button>
+                          </div>
+
+                          <h1 className="mb-3 text-base font-semibold text-[#111827] sm:mb-4 sm:text-lg lg:text-[20px]">
+                            Komentar
+                          </h1>
+                          <CommentSection postId={post._id} />
+                        </article>
+                      )}
+
+                      <div className="mt-4 border-t border-gray-100 sm:mt-5 lg:mt-7"></div>
+                    </article>
+                  );
+                })
+              ) : (
+                <p className="text-center text-sm text-gray-500 sm:text-base">
+                  Belum ada postingan.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="hidden w-full flex-col gap-4 sm:gap-5 lg:top-24 lg:flex lg:self-start">
+            <div className="flex flex-col gap-4 rounded-lg bg-white p-3 shadow-md sm:gap-5 sm:rounded-2xl sm:p-4 md:p-6 lg:p-8">
+              <h1 className="text-lg font-bold text-[#1A1A1A] sm:text-xl lg:text-[24px]">
+                Koneksi
+              </h1>
+              <div className="flex flex-col gap-4 sm:gap-5">
+                {[1, 2, 3].map((_, i) => (
+                  <div
+                    key={i}
+                    className="-m-2 flex cursor-pointer flex-row items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50 sm:gap-4"
+                  >
+                    <img
+                      src="/images/logo.png"
+                      alt="User"
+                      className="h-9 w-9 flex-shrink-0 rounded-full bg-black object-cover sm:h-10 sm:w-10 md:h-12 md:w-12"
+                    />
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <h2 className="truncate text-sm font-medium text-[#1A1A1A] sm:text-base lg:text-[18px]">
+                        Kurniawan Ilham
+                      </h2>
+                      <p className="truncate text-xs text-[#7A7A7A] sm:text-sm lg:text-[16px]">
+                        Teknik Nuklir
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                <h4 className="mt-2 cursor-pointer text-center text-sm font-semibold text-[#5568FE] transition-colors hover:text-[#5568FE]/80 sm:text-base">
+                  Lihat Lebih Banyak
+                </h4>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 rounded-lg bg-white p-3 shadow-md sm:gap-5 sm:rounded-2xl sm:p-4 md:p-6 lg:p-8">
+              <h1 className="text-lg font-bold text-[#1A1A1A] sm:text-xl lg:text-[24px]">
+                Postingan Terfavorit
+              </h1>
+              <div className="flex flex-col gap-4 sm:gap-5">
+                {[1, 2, 3].map((_, i) => (
+                  <div
+                    key={i}
+                    className="-m-2 flex cursor-pointer flex-row items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50 sm:gap-4"
+                  >
+                    <img
+                      src="/images/logo.png"
+                      alt="User"
+                      className="h-9 w-9 flex-shrink-0 rounded-lg bg-black object-cover sm:h-10 sm:w-10 md:h-12 md:w-12"
+                    />
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <h2 className="line-clamp-2 text-sm font-medium break-words text-[#1A1A1A] sm:text-base lg:text-[18px]">
+                        Kerja Dideloite membua..
+                      </h2>
+                      <p className="text-xs text-[#7A7A7A] sm:text-sm lg:text-[16px]">
+                        286 Likes
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export default ProfileUserPage;

@@ -143,8 +143,24 @@ const Profile = () => {
                               <h3 className="truncate text-sm font-semibold text-[#202020] sm:text-base lg:text-xl">
                                 {post.userId?.fullName || "Nama Pengguna"}
                               </h3>
-                              <div className="rounded-full bg-[#5568FE]/10 px-4 py-1 sm:px-4 sm:py-1">
-                                <h5 className="text-xs font-medium text-[#5568FE] sm:text-sm">
+                              <div
+                                className={
+                                  post.type_content === "Competition"
+                                    ? "rounded-full bg-[#FFB27C]/10 px-8 py-1 sm:px-8 sm:py-1"
+                                    : post.type_content === "Project"
+                                      ? "rounded-full bg-[#16A34A]/10 px-8 py-1 sm:px-8 sm:py-1"
+                                      : "rounded-full bg-[#5568FE]/10 px-8 py-1 sm:px-8 sm:py-1"
+                                }
+                              >
+                                <h5
+                                  className={
+                                    post.type_content === "Competition"
+                                      ? "text-xs font-medium text-[#FFB27C] sm:text-sm"
+                                      : post.type_content === "Project"
+                                        ? "text-xs font-medium text-[#16A34A] sm:text-sm"
+                                        : "text-xs font-medium text-[#5568FE] sm:text-sm"
+                                  }
+                                >
                                   {post.type_content || "Project"}
                                 </h5>
                               </div>

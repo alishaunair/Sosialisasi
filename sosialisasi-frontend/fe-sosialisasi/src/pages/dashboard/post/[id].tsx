@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import Image from "next/image";
@@ -6,7 +5,6 @@ import { IPost } from "@/types/Home";
 import CommentSection from "@/components/views/Dashboard/HomePage/CommentSectionPage";
 import useHomePage from "@/components/hooks/useHomePage";
 import { useQuery } from "@tanstack/react-query";
-import contentServices from "@/services/content.service";
 
 const PostPage = () => {
   const router = useRouter();
