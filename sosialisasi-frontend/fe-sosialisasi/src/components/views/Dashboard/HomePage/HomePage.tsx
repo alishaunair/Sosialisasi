@@ -55,6 +55,9 @@ const HomePage = () => {
                   <div
                     key={user._id}
                     className="flex flex-row items-center gap-3 sm:gap-4"
+                    onClick={() =>
+                      router.push(`/dashboard/profileuser/${user._id}`)
+                    }
                   >
                     <Image
                       src={`http://localhost:3001${user.profilePicture}`}
@@ -94,6 +97,7 @@ const HomePage = () => {
               >
                 <div className="flex flex-row items-center gap-3 sm:gap-4">
                   <div
+                    className="flex flex-row items-center gap-3 sm:gap-4"
                     onClick={() =>
                       router.push(`/dashboard/profileuser/${post.userId._id}`)
                     }

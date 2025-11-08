@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import useHomePage from "@/components/hooks/useHomePage";
@@ -34,6 +34,13 @@ const ProfileUserPage = () => {
     handleShare,
   } = useHomePage();
 
+  // 🔹 Redirect kalau user_id sama dengan dirinya sendiri
+  useEffect(() => {
+    if (id && currentUserId && id === currentUserId) {
+      router.replace("/dashboard/profile");
+    }
+  }, [id, currentUserId, router]);
+
   // 🔹 Fetch user profile berdasarkan id
   const {
     data: profile,
@@ -51,7 +58,7 @@ const ProfileUserPage = () => {
       const data = await res.json();
       return data.data as IUserProfile;
     },
-    enabled: !!id,
+    enabled: !!id && id !== currentUserId, // ❗ Hanya fetch kalau bukan profil diri sendiri
   });
 
   // 🔹 Fetch postingan user
@@ -62,16 +69,15 @@ const ProfileUserPage = () => {
       if (!userId) throw new Error("User ID is required");
 
       const res = await fetch(
-        `http://localhost:3001/api/upload/content/user/${userId}`,
+        `http://localhost:3001/api/upload/contentuser/${userId}`,
       );
       if (!res.ok)
         throw new Error(`Failed to fetch user posts. Status: ${res.status}`);
       const data = await res.json();
       return data.data as IPost[];
     },
-    enabled: !!id,
+    enabled: !!id && id !== currentUserId, // ❗ Hanya fetch kalau bukan profil diri sendiri
   });
-
   const toggleMenu = (postId: string) => {
     setOpenMenu(openMenu === postId ? null : postId);
   };

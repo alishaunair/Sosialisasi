@@ -276,8 +276,8 @@ export default {
 
   async getUserById(req: IReqUser, res: Response) {
     try {
-      const { user_id } = req.params;
-      const result = await UserModel.findById(user_id);
+      const { id } = req.params;
+      const result = await UserModel.findById(id);
 
       if (!result) {
         return res.status(404).json({
