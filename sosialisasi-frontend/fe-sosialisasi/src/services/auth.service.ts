@@ -22,7 +22,7 @@ const authServices = {
   editProfile: (payload: FormData) =>
     instance.put(`${endpoint.AUTH}/edit-profile`, payload, {
       headers: {
-        "Content-Type": "multipart/form-data", // <-- TAMBAHKAN INI
+        "Content-Type": "multipart/form-data",
       },
     }),
 };

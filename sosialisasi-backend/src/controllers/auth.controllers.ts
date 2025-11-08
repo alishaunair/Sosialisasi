@@ -131,8 +131,8 @@ export default {
       });
 
       if (!user) {
-        return res.status(403).json({
-          message: "Pengguna tidak ditemukan",
+        return res.status(401).json({
+          message: "Email or password incorrect",
           data: null,
         });
       }
@@ -140,8 +140,8 @@ export default {
       const validatePassword: boolean = encrypt(password) === user.password;
 
       if (!validatePassword) {
-        return res.status(403).json({
-          message: "User not found",
+        return res.status(401).json({
+          message: "Email or password incorrect",
           data: null,
         });
       }
@@ -156,7 +156,7 @@ export default {
       });
     } catch (error) {
       const err = error as unknown as Error;
-      res.status(400).json({
+      res.status(500).json({
         message: err.message,
         data: null,
       });

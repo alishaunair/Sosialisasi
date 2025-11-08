@@ -2,7 +2,7 @@ import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { Controller } from "react-hook-form";
 import { Spinner } from "@heroui/react";
 import { FaCircle } from "react-icons/fa6";
-import useEditProfile from "../../../hooks/useEditProfile";
+import useEditProfile from "@/components/hooks/useEditProfile";
 
 const EditProfile = () => {
   const {

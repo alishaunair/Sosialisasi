@@ -75,7 +75,11 @@ const Login = () => {
                   />
                 )}
               />
-
+              {errors.root && (
+                <p className="font-medium text-red-500">
+                  {errors.root.message}
+                </p>
+              )}
               <div className="flex gap-4 pt-2">
                 <Button className="w-full bg-[#CEB07E]" type="submit">
                   {isPendingLogin ? (

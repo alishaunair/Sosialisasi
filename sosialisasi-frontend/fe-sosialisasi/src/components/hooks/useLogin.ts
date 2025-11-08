@@ -40,8 +40,8 @@ const useLogin = () => {
       redirect: false,
       callbackUrl,
     });
-    if (result?.error && result?.status === 401) {
-      throw new Error("Login failed");
+    if (result?.error) {
+      throw new Error(result.error);
     }
   };
 
