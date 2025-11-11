@@ -44,7 +44,7 @@ const DashboardLayoutNavbar = ({
   };
 
   return (
-    <nav className="sticky top-0 z-50 flex w-full flex-row items-center justify-between bg-white p-4 shadow-md sm:p-5">
+    <nav className="sticky top-0 z-50 flex w-full flex-row items-center justify-between bg-white px-3 py-2 shadow-md sm:px-4 sm:py-2 md:px-5 md:py-3 lg:px-6 lg:py-3">
       <div className="flex flex-row items-center gap-2 sm:gap-3">
         <Image
           src="/images/logo.png"
@@ -53,7 +53,7 @@ const DashboardLayoutNavbar = ({
           height={50}
           className="h-10 w-10 sm:h-12 sm:w-12"
         />
-        <h1 className="text-xl font-bold sm:text-2xl lg:text-3xl">
+        <h1 className="text-sm font-bold sm:text-lg md:text-xl lg:text-2xl">
           SosialisaSI
         </h1>
       </div>
@@ -81,7 +81,7 @@ const DashboardLayoutNavbar = ({
 
         <div
           className={`cursor-pointer rounded-xl p-2.5 transition-colors sm:p-3 lg:p-4 ${showNotif ? "bg-[#5568FE] hover:bg-[#4657d8]" : "bg-[#FAFAFF] hover:bg-gray-100"}`}
-          onClick={() => router.push("/dashboard/notifikasi")}
+          onClick={() => router.push("/dashboard/notification")}
         >
           <i
             className={`fas fa-bell text-base sm:text-lg ${showNotif ? "text-white" : "text-[#787878]"}`}

@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import DashboardLayoutNavbar from "./DashboardLayoutNavbar";
 import DashboardLayoutSidebar from "./DashboardLayoutSidebar";
+import { useRouter } from "next/router";
+import {
+  SIDEBAR_ITEMS,
+  SIDEBAR_ITEMS_ADMIN,
+} from "./DashboardLayout.constants";
 
 interface IPropTypes {
   children: React.ReactNode;
@@ -14,6 +19,10 @@ const DashboardLayout = ({ children, showSearch, showNotif }: IPropTypes) => {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
 
+  const routes = useRouter();
+  const isRouterAdmin = routes.pathname.startsWith("/admin");
+  const sidebarItems = isRouterAdmin ? SIDEBAR_ITEMS_ADMIN : SIDEBAR_ITEMS;
+
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-[#FAFAFF]">
       <DashboardLayoutNavbar
@@ -24,7 +33,7 @@ const DashboardLayout = ({ children, showSearch, showNotif }: IPropTypes) => {
 
       <div className="flex h-full overflow-hidden">
         <div className="hidden md:block">
-          <DashboardLayoutSidebar />
+          <DashboardLayoutSidebar sidebarItems={sidebarItems} />
         </div>
 
         <div
@@ -32,7 +41,7 @@ const DashboardLayout = ({ children, showSearch, showNotif }: IPropTypes) => {
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <DashboardLayoutSidebar />
+          <DashboardLayoutSidebar sidebarItems={sidebarItems} />
         </div>
 
         {isSidebarOpen && (
