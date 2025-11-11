@@ -5,6 +5,7 @@ import likeRoutes from "./like.routes";
 import commentRoutes from "./comment.routes";
 import searchRoutes from "./search.routes";
 import connectRoutes from "./connect.routes";
+import adminRoutes from "./admin.routes";
 
 const router = express.Router();
 
@@ -21,4 +22,5 @@ router.use("/comment", commentRoutes);
 router.use("/search", searchRoutes);
 router.use("/connect", connectRoutes);
 
+router.use("/admin", adminRoutes);
 export default router;
