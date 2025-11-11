@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 
-const DashboardAdmin = () => {
+const ContentManagement = () => {
   return (
     <DashboardLayout>
       <div>Halo</div>
@@ -8,4 +8,4 @@ const DashboardAdmin = () => {
   );
 };
 
-export default DashboardAdmin;
+export default ContentManagement;
