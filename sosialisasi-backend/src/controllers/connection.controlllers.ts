@@ -41,7 +41,6 @@ export default {
         (conn: any) => conn.user.toString() === currentUserId
       );
 
-      // Jika koneksi sudah ada (baik sender maupun receiver), maka batalkan
       if (existingConnectionCurrent || existingConnectionTarget) {
         currentUser.connections = currentUser.connections.filter(
           (conn: any) => conn.user.toString() !== targetUserId
@@ -58,7 +57,6 @@ export default {
         });
       }
 
-      // Jika belum ada koneksi, buat koneksi baru (sender - receiver)
       currentUser.connections.push({
         user: new mongoose.Types.ObjectId(targetUserId),
         status: "pending",
