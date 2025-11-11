@@ -1,3 +1,3 @@
-import DashboardAdmin from "./DashboardAdmin";
+import DashboardAdmin from "./DashboardAdminPage";
 
 export default DashboardAdmin;
